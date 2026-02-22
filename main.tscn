@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://rx58vf4ci3fs"]
+
+[ext_resource type="PackedScene" uid="uid://5fg34ynkvh3n" path="res://paddle.tscn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://bb07k1qdtd5yi" path="res://main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://bcnbmoivcm7yp" path="res://ball.tscn" id="3_h2yge"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7dm0k"]
+size = Vector2(1152, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ig7tw"]
+size = Vector2(1152, 20)
+
+[node name="Main" type="Node2D" unique_id=1044027067]
+script = ExtResource("1_main")
+
+[node name="TopWall" type="StaticBody2D" parent="." unique_id=301633552]
+position = Vector2(576, -10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TopWall" unique_id=257644501]
+shape = SubResource("RectangleShape2D_7dm0k")
+
+[node name="BottomWall" type="StaticBody2D" parent="." unique_id=528454355]
+position = Vector2(576, 658)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BottomWall" unique_id=251811851]
+shape = SubResource("RectangleShape2D_ig7tw")
+
+[node name="LeftPaddle" parent="." unique_id=1653243891 instance=ExtResource("1_ig7tw")]
+position = Vector2(40, 324)
+
+[node name="RightPaddle" parent="." unique_id=1196709304 instance=ExtResource("1_ig7tw")]
+position = Vector2(1112, 324)
+is_left_player = false
+
+[node name="ScoreLabel" type="Label" parent="." unique_id=1401867053]
+offset_top = 10.0
+offset_right = 1152.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 36
+text = "0 = 0"
+horizontal_alignment = 1
+
+[node name="Ball" parent="." unique_id=21919213 instance=ExtResource("3_h2yge")]
+position = Vector2(576, 324)
+
+[node name="CenterLine" type="ColorRect" parent="." unique_id=176053235]
+offset_left = 575.0
+offset_right = 577.0
+offset_bottom = 648.0
+color = Color(1, 1, 1, 0.078431375)

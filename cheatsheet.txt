@@ -1,0 +1,85 @@
+============================
+  PONG - GODOT CHEATSHEET
+============================
+
+--- CORE CONCEPTS ---
+
+Scene:  A scene is a reusable building block in Godot. It's a tree of nodes
+        saved as a .tscn file. Everything in your game is a scene — the main
+        level, a paddle, a ball, a UI menu. Scenes can be nested inside other
+        scenes (called "instancing").
+
+Node:   The basic unit in Godot. Each node has a specific purpose (display a
+        sprite, detect collisions, play audio, etc.). You build scenes by
+        combining nodes in a tree hierarchy.
+
+--- WHY NODE2D FOR THE MAIN SCENE? ---
+
+Node2D is the base node for all 2D games. It gives you a 2D coordinate system
+(x goes right, y goes down). We use it as the root of our main scene because
+Pong is a 2D game and we just need a container to hold our child nodes (paddles,
+ball, walls, score label). It doesn't do much on its own — it's an organizer.
+
+--- COMMON NODE TYPES (used in this project) ---
+
+Node2D            - Base 2D node, used as a container/root
+StaticBody2D      - A physics body that does NOT move (walls, floors)
+CharacterBody2D   - A physics body you move with code (paddles, ball)
+CollisionShape2D  - Defines the hitbox shape; must be a child of a physics body
+ColorRect         - A simple colored rectangle (we use these as visuals)
+Label             - Displays text on screen
+
+--- PHYSICS BODIES CHEAT SHEET ---
+
+StaticBody2D      → Doesn't move. Other things bounce off it. (walls)
+CharacterBody2D   → You control movement in code. (paddle, ball)
+RigidBody2D       → Physics engine moves it (gravity, forces). Not used here.
+Area2D            → Detects overlaps but doesn't collide. (triggers, pickups)
+
+--- KEY SHORTCUTS ---
+
+F5                → Run the project (plays main scene)
+F6                → Run current scene only
+Ctrl+S            → Save current scene
+Ctrl+Shift+S      → Save all scenes
+Ctrl+A            → Add a new child node to selected node
+
+--- GDSCRIPT BASICS ---
+
+extends Node2D        → This script inherits from Node2D
+func _ready():        → Called once when the node enters the scene
+func _process(delta): → Called every frame (for visuals/input)
+func _physics_process(delta): → Called every physics tick (for movement)
+@export var speed := 400.0    → Editable in the Inspector panel
+@onready var ball = $Ball     → Gets a child node reference when ready
+
+--- SIGNALS ---
+
+Signals are Godot's event system. A node emits a signal, other nodes listen.
+Example: the ball emits "scored" when it leaves the screen, and the main
+scene listens and updates the score. This keeps code decoupled.
+
+signal scored(player: int)    → Declare a signal
+scored.emit(1)                → Fire the signal
+ball.scored.connect(_on_ball_scored)  → Listen for it
+
+--- FILE TYPES ---
+
+.tscn     → Scene file (text format, describes node tree)
+.gd       → GDScript file (your code)
+.uid      → Godot's unique ID tracker (auto-generated, don't edit)
+.godot    → Project settings
+.import   → Import settings for assets (auto-generated)
+
+--- COORDINATE SYSTEM ---
+
+Origin (0,0) is the TOP-LEFT of the screen.
+X increases to the RIGHT.
+Y increases DOWNWARD.
+Our viewport is 1152 x 648 pixels.
+
+So:
+  Top-left corner     = (0, 0)
+  Top-right corner    = (1152, 0)
+  Bottom-left corner  = (0, 648)
+  Center              = (576, 324)
