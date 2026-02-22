@@ -7,7 +7,6 @@ var score := [{"left": 0, "right": 0}, 0]
 
 
 # TODO:
-# Fix gliding bug
 # Add audio on ball hit and score
 # Add pause menu
 # Add menu between pvp and pve

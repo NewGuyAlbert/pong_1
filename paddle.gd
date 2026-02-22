@@ -5,7 +5,7 @@ extends CharacterBody2D
 @export var speed := 400.0
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var direction := 0.0
 
 	if is_left_player:
@@ -20,8 +20,8 @@ func _physics_process(_delta: float) -> void:
 		if Input.is_key_pressed(KEY_DOWN):
 			direction += 1.0
 
-	velocity = Vector2(0, direction * speed)
-	move_and_slide()
+	var motion := Vector2(0, direction * speed * delta)
+	move_and_collide(motion)
 
 	# Keep paddle within screen bounds
 	position.y = clampf(position.y, 50.0, get_viewport_rect().size.y - 50.0)

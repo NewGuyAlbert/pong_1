@@ -6,6 +6,8 @@
 radius = 8.0
 
 [node name="Ball" type="CharacterBody2D" unique_id=21919213]
+collision_layer = 4
+collision_mask = 3
 script = ExtResource("1_x8fbi")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1810753983]
