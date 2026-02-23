@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://rx58vf4ci3fs"]
 
-[ext_resource type="PackedScene" uid="uid://5fg34ynkvh3n" path="res://paddle.tscn" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://bb07k1qdtd5yi" path="res://main.gd" id="1_main"]
-[ext_resource type="PackedScene" uid="uid://bcnbmoivcm7yp" path="res://ball.tscn" id="3_h2yge"]
+[ext_resource type="PackedScene" uid="uid://5fg34ynkvh3n" path="res://scenes/paddle/paddle.tscn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://bb07k1qdtd5yi" path="res://scenes/game/main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://bcnbmoivcm7yp" path="res://scenes/ball/ball.tscn" id="3_h2yge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7dm0k"]
 size = Vector2(1152, 20)

@@ -1,6 +1,6 @@
 extends Node2D
 
-var score := [{"left": 0, "right": 0}, 0]
+var score := {"left": 0, "right": 0}
 
 @onready var ball: CharacterBody2D = $Ball
 @onready var score_label: Label = $ScoreLabel
@@ -8,6 +8,9 @@ var score := [{"left": 0, "right": 0}, 0]
 
 # TODO:
 # Add audio on ball hit and score
+# Add restart button for new game or even during a game.
+# Ask ai what it would refactor from this code and why
+# Make the game work for multiple screen sizes. Also some pixel values are hardcoded
 # Add pause menu
 # Add menu between pvp and pve
 # Add AI opponent (easy, medium, hard)
@@ -16,18 +19,15 @@ func _ready() -> void:
 
 
 func _on_ball_scored(player: String) -> void:
-	if player == "left":
-		score[0]["left"] += 1
-	elif player == "right":
-		score[0]["right"] += 1
-	score_label.text = "%d : %d" % [score[0]["left"], score[0]["right"]]
+	score[player] += 1
+	score_label.text = "%d : %d" % [score["left"], score["right"]]
 
 	# Win condition: first to 3 points
-	if score[0]["left"] >= 3:
-		score_label.text = "Player 1 Wins! %d : %d" % [score[0]["left"], score[0]["right"]]
+	if score["left"] >= 3:
+		score_label.text = "Player 1 Wins! %d : %d" % [score["left"], score["right"]]
 		ball.set_physics_process(false)  # Stop the ball
-	elif score[0]["right"] >= 3:
-		score_label.text = "Player 2 Wins! %d : %d" % [score[0]["left"], score[0]["right"]]
+	elif score["right"] >= 3:
+		score_label.text = "Player 2 Wins! %d : %d" % [score["left"], score["right"]]
 		ball.set_physics_process(false)  # Stop the ball
 
 
