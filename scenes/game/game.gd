@@ -11,11 +11,6 @@ var winner := ""
 @onready var score_label: Label = $ScoreLabel
 
 
-# TODO:
-# Add sounds for button hovers and clicks. Make menu interactible with arrow keys and Enter key
-# Make the game work for multiple screen sizes. Also some pixel values are hardcoded
-# Add AI opponent (easy, medium, hard)
-# Make it playable with controllers
 func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
 
@@ -26,7 +21,7 @@ func _on_ball_scored(player: String) -> void:
 	else:
 		score_right += 1
 
-	score_label.text = "%d : %d" % [score_left, score_right]
+	score_label.text = "%d   %d" % [score_left, score_right]
 
 	# Win condition: first to win_score points
 	if score_left >= win_score:
@@ -35,7 +30,7 @@ func _on_ball_scored(player: String) -> void:
 		winner = "Player 2"
 
 	if winner != "":
-		score_label.text = "%s Wins! %d : %d" % [winner, score_left, score_right]
+		score_label.text = "%s Wins! %d - %d" % [winner, score_left, score_right]
 		ball.set_physics_process(false)
 		left_paddle.set_physics_process(false)
 		right_paddle.set_physics_process(false)
