@@ -23,8 +23,6 @@ ui_restart={
 ]
 }
 
-[physics]
-
 [rendering]
 
 rendering_device/driver.windows="d3d12"

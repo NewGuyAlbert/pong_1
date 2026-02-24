@@ -4,7 +4,9 @@ A classic Pong game built with [Godot 4](https://godotengine.org/).
 
 ## Setup
 
-### VS Code
+WIP
+
+### VS Code (optional)
 
 1. Install the [Godot Tools](https://marketplace.visualstudio.com/items?itemName=geequlim.godot-tools) extension.
 2. Go to **Settings** → search for **Godot Tools › Editor Path** and set it to the path of your Godot 4 executable.
