@@ -20,14 +20,66 @@ Node2D is the base node for all 2D games. It gives you a 2D coordinate system
 Pong is a 2D game and we just need a container to hold our child nodes (paddles,
 ball, walls, score label). It doesn't do much on its own — it's an organizer.
 
---- COMMON NODE TYPES (used in this project) ---
+--- PROJECT STRUCTURE ---
 
-Node2D            - Base 2D node, used as a container/root
-StaticBody2D      - A physics body that does NOT move (walls, floors)
-CharacterBody2D   - A physics body you move with code (paddles, ball)
-CollisionShape2D  - Defines the hitbox shape; must be a child of a physics body
-ColorRect         - A simple colored rectangle (we use these as visuals)
-Label             - Displays text on screen
+scenes/
+  game/
+    main.tscn       → Main game scene (root scene, holds everything)
+    main.gd         → Game logic: scoring, win condition, restart
+  ball/
+    ball.tscn       → Ball scene
+    ball.gd         → Ball movement, bouncing, speed, reset, scoring detection
+  paddle/
+    paddle.tscn     → Paddle scene (reused for both players)
+    paddle.gd       → Paddle movement, input handling, screen clamping
+assets/
+  sounds/
+    paddle_hit.mp3  → Sound when ball hits a paddle
+    wall_hit.mp3    → Sound when ball hits a wall
+    scored.mp3      → Sound when a point is scored
+
+--- SCENE TREES ---
+
+Main (Node2D)                      ← main.gd
+├── TopWall (StaticBody2D)           pos (576, -10)
+│   └── CollisionShape2D             RectangleShape2D 1152×20
+├── BottomWall (StaticBody2D)        pos (576, 658)
+│   └── CollisionShape2D             RectangleShape2D 1152×20
+├── LeftPaddle (instance of paddle.tscn)   pos (40, 324), is_left_player=true
+├── RightPaddle (instance of paddle.tscn)  pos (1112, 324), is_left_player=false
+├── ScoreLabel (Label)               centered, font_size=36, "0 : 0"
+├── Ball (instance of ball.tscn)
+└── CenterLine (ColorRect)          2px wide, white at 39% opacity
+
+Ball (CharacterBody2D)             ← ball.gd
+├── CollisionShape2D                 CircleShape2D radius=8
+├── ColorRect                        16×16 square visual
+├── PaddleHitSound (AudioStreamPlayer2D)  → paddle_hit.mp3
+├── WallHitSound (AudioStreamPlayer2D)    → wall_hit.mp3
+└── ScoredSound (AudioStreamPlayer2D)     → scored.mp3
+
+Paddle (CharacterBody2D)           ← paddle.gd
+├── CollisionShape2D                 RectangleShape2D 16×100
+└── ColorRect                        16×100 white rectangle
+
+--- COLLISION LAYERS ---
+
+Layer 1: Walls (StaticBody2D)      → TopWall, BottomWall
+Layer 2: Paddles (CharacterBody2D) → LeftPaddle, RightPaddle
+Layer 3: Ball (CharacterBody2D)    → Ball
+
+Ball is on layer 3, masks 1+2      → collides with walls and paddles
+Paddle is on layer 2, masks 1+3    → collides with walls and ball
+
+--- NODE TYPES USED ---
+
+Node2D               - Base 2D node, used as a container/root
+StaticBody2D          - A physics body that does NOT move (walls)
+CharacterBody2D       - A physics body you move with code (paddles, ball)
+CollisionShape2D      - Defines the hitbox shape; child of a physics body
+ColorRect             - A simple colored rectangle (visuals for paddle/ball/center line)
+Label                 - Displays text on screen (score)
+AudioStreamPlayer2D   - Plays a sound in 2D space (paddle hit, wall hit, scored)
 
 --- PHYSICS BODIES CHEAT SHEET ---
 
@@ -36,13 +88,44 @@ CharacterBody2D   → You control movement in code. (paddle, ball)
 RigidBody2D       → Physics engine moves it (gravity, forces). Not used here.
 Area2D            → Detects overlaps but doesn't collide. (triggers, pickups)
 
---- KEY SHORTCUTS ---
+--- INPUT MAP ---
 
-F5                → Run the project (plays main scene)
-F6                → Run current scene only
-Ctrl+S            → Save current scene
-Ctrl+Shift+S      → Save all scenes
-Ctrl+A            → Add a new child node to selected node
+Built-in actions:
+  ui_cancel (Escape)     → Quit the game
+
+Custom actions (defined in Project Settings > Input Map):
+  ui_restart (R)         → Restart the game (only works after a win)
+
+Hardcoded keys (read directly in paddle.gd):
+  W / S                  → Left paddle movement
+  Up / Down arrows       → Right paddle movement
+
+--- SIGNALS IN THIS PROJECT ---
+
+signal scored(player: String)    → Declared in ball.gd
+scored.emit("left")              → Ball emits when it exits right side
+scored.emit("right")             → Ball emits when it exits left side
+ball.scored.connect(_on_ball_scored)  → main.gd listens for it in _ready()
+
+Signals are Godot's event system. A node emits a signal, other nodes listen.
+This keeps code decoupled — the ball doesn't need to know about the score.
+
+--- KEY GODOT FUNCTIONS USED ---
+
+move_and_collide(motion)    → Move a body and return collision info (ball, paddle)
+direction.bounce(normal)    → Reflect a vector across a surface normal (ball bounce)
+get_viewport_rect().size    → Get the viewport dimensions as Vector2
+get_tree().quit()           → Close the game
+get_tree().reload_current_scene()  → Reload the current scene (restart)
+get_tree().create_timer(t).timeout → Create a one-shot timer, await it
+set_physics_process(false)  → Disable _physics_process on a node (freeze it)
+clampf(value, min, max)     → Clamp a float between min and max
+minf(a, b)                  → Return the smaller of two floats
+randf_range(min, max)       → Random float in range
+randi() % 2                 → Random 0 or 1 (coin flip)
+Vector2.from_angle(radians) → Create a unit vector from an angle
+Input.is_key_pressed(KEY)   → Check if a specific key is held down
+event.is_action_pressed(a)  → Check if an input action was just pressed
 
 --- GDSCRIPT BASICS ---
 
@@ -50,26 +133,33 @@ extends Node2D        → This script inherits from Node2D
 func _ready():        → Called once when the node enters the scene
 func _process(delta): → Called every frame (for visuals/input)
 func _physics_process(delta): → Called every physics tick (for movement)
+func _unhandled_input(event):  → Called for input not consumed by UI
 @export var speed := 400.0    → Editable in the Inspector panel
 @onready var ball = $Ball     → Gets a child node reference when ready
-
---- SIGNALS ---
-
-Signals are Godot's event system. A node emits a signal, other nodes listen.
-Example: the ball emits "scored" when it leaves the screen, and the main
-scene listens and updates the score. This keeps code decoupled.
-
-signal scored(player: int)    → Declare a signal
-scored.emit(1)                → Fire the signal
-ball.scored.connect(_on_ball_scored)  → Listen for it
+await <signal>                → Pause execution until a signal fires
 
 --- FILE TYPES ---
 
 .tscn     → Scene file (text format, describes node tree)
 .gd       → GDScript file (your code)
 .uid      → Godot's unique ID tracker (auto-generated, don't edit)
-.godot    → Project settings
+.godot    → Project settings (can edit via UI: Project > Project Settings)
 .import   → Import settings for assets (auto-generated)
+
+--- EDITOR SHORTCUTS ---
+
+F5                → Run the project (plays main scene)
+F6                → Run current scene only
+Ctrl+S            → Save current scene
+Ctrl+Shift+S      → Save all scenes
+Ctrl+A            → Add a new child node to selected node
+
+--- PROJECT SETTINGS ---
+
+Viewport size:         1152 × 648
+Renderer:              Forward Plus (D3D12 on Windows)
+Background color:      Dark gray (0.1, 0.1, 0.1)
+Main scene:            res://scenes/game/main.tscn
 
 --- COORDINATE SYSTEM ---
 
@@ -83,3 +173,14 @@ So:
   Top-right corner    = (1152, 0)
   Bottom-left corner  = (0, 648)
   Center              = (576, 324)
+
+--- GAME FLOW ---
+
+1. Main scene loads → _ready() connects ball's scored signal
+2. Ball resets to center, waits 1 second, launches in random direction
+3. Players move paddles with W/S and Up/Down
+4. Ball bounces off walls and paddles, speeding up each hit
+5. When ball exits left/right edge → scored signal → score updates
+6. Ball resets to center and re-launches
+7. First player to 3 points wins → game freezes
+8. Press R to restart, Escape to quit
