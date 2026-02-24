@@ -4,6 +4,13 @@ extends CharacterBody2D
 @export var is_left_player := true
 @export var speed := 400.0
 
+var _clamp_height: float
+
+
+func _ready() -> void:
+	var shape: RectangleShape2D = $CollisionShape2D.shape
+	_clamp_height = shape.size.y
+
 
 func _physics_process(delta: float) -> void:
 	var direction := 0.0
@@ -24,4 +31,6 @@ func _physics_process(delta: float) -> void:
 	move_and_collide(motion)
 
 	# Keep paddle within screen bounds
-	position.y = clampf(position.y, 50.0, get_viewport_rect().size.y - 50.0)
+	position.y = clampf(
+		position.y, _clamp_height / 2.0, get_viewport_rect().size.y - _clamp_height / 2.0
+	)

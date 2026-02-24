@@ -1,8 +1,12 @@
 extends Node2D
 
-var score := {"left": 0, "right": 0}
+@export var win_score := 3
+var score_left := 0
+var score_right := 0
 
 @onready var ball: CharacterBody2D = $Ball
+@onready var left_paddle: CharacterBody2D = $LeftPaddle
+@onready var right_paddle: CharacterBody2D = $RightPaddle
 @onready var score_label: Label = $ScoreLabel
 
 
@@ -14,21 +18,32 @@ var score := {"left": 0, "right": 0}
 # Add pause menu
 # Add menu between pvp and pve
 # Add AI opponent (easy, medium, hard)
+# Make it playable with controllers
+# Learn how to package/make installers for the game
 func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
 
 
 func _on_ball_scored(player: String) -> void:
-	score[player] += 1
-	score_label.text = "%d : %d" % [score["left"], score["right"]]
+	if player == "left":
+		score_left += 1
+	else:
+		score_right += 1
 
-	# Win condition: first to 3 points
-	if score["left"] >= 3:
-		score_label.text = "Player 1 Wins! %d : %d" % [score["left"], score["right"]]
-		ball.set_physics_process(false)  # Stop the ball
-	elif score["right"] >= 3:
-		score_label.text = "Player 2 Wins! %d : %d" % [score["left"], score["right"]]
-		ball.set_physics_process(false)  # Stop the ball
+	score_label.text = "%d : %d" % [score_left, score_right]
+
+	# Win condition: first to win_score points
+	var winner := ""
+	if score_left >= win_score:
+		winner = "Player 1"
+	elif score_right >= win_score:
+		winner = "Player 2"
+
+	if winner != "":
+		score_label.text = "%s Wins! %d : %d" % [winner, score_left, score_right]
+		ball.set_physics_process(false)
+		left_paddle.set_physics_process(false)
+		right_paddle.set_physics_process(false)
 
 
 func _unhandled_input(event: InputEvent) -> void:
