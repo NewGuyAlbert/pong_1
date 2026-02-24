@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="pong_1"
-run/main_scene="res://scenes/game/main.tscn"
+run/main_scene="uid://dooogqu6jksgb"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

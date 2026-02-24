@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://rx58vf4ci3fs"]
+[gd_scene format=3 uid="uid://h31paoctwvn"]
 
+[ext_resource type="Script" uid="uid://d0xywq2flu6oe" path="res://scenes/game/game.gd" id="1_0sr1o"]
 [ext_resource type="PackedScene" uid="uid://5fg34ynkvh3n" path="res://scenes/paddle/paddle.tscn" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://bb07k1qdtd5yi" path="res://scenes/game/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://bcnbmoivcm7yp" path="res://scenes/ball/ball.tscn" id="3_h2yge"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7dm0k"]
@@ -10,8 +10,8 @@ size = Vector2(1152, 20)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ig7tw"]
 size = Vector2(1152, 20)
 
-[node name="Main" type="Node2D" unique_id=1044027067]
-script = ExtResource("1_main")
+[node name="Game" type="Node2D" unique_id=1044027067]
+script = ExtResource("1_0sr1o")
 
 [node name="TopWall" type="StaticBody2D" parent="." unique_id=301633552]
 position = Vector2(576, -10)

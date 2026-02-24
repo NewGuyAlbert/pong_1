@@ -13,11 +13,9 @@ var winner := ""
 
 # TODO:
 # Make the game work for multiple screen sizes. Also some pixel values are hardcoded
-# Add pause menu
-# Add menu between pvp and pve
+# Add pause menu. Show options to resume, restart, or go back to main menu.
 # Add AI opponent (easy, medium, hard)
 # Make it playable with controllers
-# Learn how to package/make installers for the game
 func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
 
@@ -44,9 +42,9 @@ func _on_ball_scored(player: String) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Close game
+	# Go back to main menu
 	if event.is_action_pressed("ui_cancel"):
-		get_tree().quit()
+		get_tree().change_scene_to_file(Routes.MAIN_MENU)
 	# Restart game (after a win)
 	if event.is_action_pressed("ui_restart") and winner != "":
 		get_tree().reload_current_scene()

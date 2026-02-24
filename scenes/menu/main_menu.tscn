@@ -1,0 +1,70 @@
+[gd_scene format=3 uid="uid://dooogqu6jksgb"]
+
+[ext_resource type="Script" uid="uid://bu7lg02fv1mhk" path="res://scenes/menu/main_menu.gd" id="1_nl8w3"]
+
+[node name="MainMenu" type="Control" unique_id=813711118]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+script = ExtResource("1_nl8w3")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=2146852596]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=46207387]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_constants/separation = 1
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/HeaderContainer" unique_id=2135478667]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
+text = "PONG"
+
+[node name="SubtitleLabel" type="Label" parent="VBoxContainer/HeaderContainer" unique_id=2053442995]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 8
+text = "by NewGuyAlbert"
+
+[node name="PlayCoopButton" type="Button" parent="VBoxContainer" unique_id=998612857]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play Co-op"
+
+[node name="PlayAIButton" type="Button" parent="VBoxContainer" unique_id=426976038]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play AI"
+
+[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=285908879]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Settings"
+
+[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=454544130]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit"
