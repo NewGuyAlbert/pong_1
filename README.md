@@ -1,9 +1,19 @@
 # Pong
 
 A classic Pong game built with [Godot 4](https://godotengine.org/).
+This project is for personal learning.
+
+## TODOs
+
+- Check for inconsistent solutions across project.
+- Add sounds for button hovers and clicks. Make menu interactible with arrow keys and Enter key.
+- Make the game work for multiple screen sizes. Also some pixel values are hardcoded. Implement settings menu.
+- Add AI opponent. (easy, medium, hard)
+- Make it playable with controllers. (On most of the main platforms eg: Windows, Linux, Mac)
 
 ## Setup
 
+How to export the game:
 WIP
 
 ### VS Code (optional)

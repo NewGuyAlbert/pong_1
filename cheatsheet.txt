@@ -24,23 +24,49 @@ ball, walls, score label). It doesn't do much on its own — it's an organizer.
 
 scenes/
   game/
-    main.tscn       → Main game scene (root scene, holds everything)
-    main.gd         → Game logic: scoring, win condition, restart
+    game.tscn           → Main game scene (root scene, holds everything)
+    game.gd             → Game logic: scoring, win condition, restart
+    pause_menu.tscn     → Pause overlay (instanced inside game.tscn)
+    pause_menu.gd       → Pause/resume/restart/main menu logic
+  menu/
+    main_menu.tscn      → Main menu (Play Co-op, Play AI, Settings, Quit)
+    main_menu.gd        → Button connections, scene navigation
+    placeholder_screen.tscn → WIP placeholder for unfinished screens
+    placeholder_screen.gd   → Back button returns to main menu
   ball/
-    ball.tscn       → Ball scene
-    ball.gd         → Ball movement, bouncing, speed, reset, scoring detection
+    ball.tscn           → Ball scene
+    ball.gd             → Ball movement, bouncing, speed, reset, scoring detection
   paddle/
-    paddle.tscn     → Paddle scene (reused for both players)
-    paddle.gd       → Paddle movement, input handling, screen clamping
+    paddle.tscn         → Paddle scene (reused for both players)
+    paddle.gd           → Paddle movement, input handling, screen clamping
+  global/
+    routes.gd           → Global scene path constants (class_name Routes)
 assets/
   sounds/
-    paddle_hit.mp3  → Sound when ball hits a paddle
-    wall_hit.mp3    → Sound when ball hits a wall
-    scored.mp3      → Sound when a point is scored
+    paddle_hit.mp3      → Sound when ball hits a paddle
+    wall_hit.mp3        → Sound when ball hits a wall
+    scored.mp3          → Sound when a point is scored
+  themes/
+    button_normal.tres  → Shared StyleBoxFlat for button normal state
+    button_hover.tres   → Shared StyleBoxFlat for button hover state
 
 --- SCENE TREES ---
 
-Main (Node2D)                      ← main.gd
+MainMenu (Control)                 ← main_menu.gd, Full Rect
+└── VBoxContainer                    Center anchors
+    ├── TitleContainer (VBoxContainer)
+    │   ├── TitleLabel (Label)         "PONG", font_size=48
+    │   └── SubtitleLabel (Label)      "by NewGuyAlbert", font_size=8
+    ├── PlayCoopButton (Button)        → changes to game.tscn
+    ├── PlayAIButton (Button)          → changes to placeholder_screen.tscn
+    ├── SettingsButton (Button)        → changes to placeholder_screen.tscn
+    └── QuitButton (Button)            → quits the game
+
+PlaceholderScreen (Control)        ← placeholder_screen.gd, Full Rect
+├── WipLabel (Label)                 "Work in Progress", Center anchors
+└── BackButton (Button)              "← Back", top-left
+
+Main (Node2D)                      ← game.gd
 ├── TopWall (StaticBody2D)           pos (576, -10)
 │   └── CollisionShape2D             RectangleShape2D 1152×20
 ├── BottomWall (StaticBody2D)        pos (576, 658)
@@ -49,7 +75,17 @@ Main (Node2D)                      ← main.gd
 ├── RightPaddle (instance of paddle.tscn)  pos (1112, 324), is_left_player=false
 ├── ScoreLabel (Label)               centered, font_size=36, "0 : 0"
 ├── Ball (instance of ball.tscn)
-└── CenterLine (ColorRect)          2px wide, white at 39% opacity
+├── CenterLine (ColorRect)          2px wide, white at 39% opacity
+└── CanvasLayer                      UI overlay layer
+    └── PauseMenu (instance of pause_menu.tscn)
+
+PauseMenu (Control)                ← pause_menu.gd, Full Rect, process_mode=Always
+├── DimBackground (ColorRect)        Full Rect, black at ~24% opacity
+└── VBoxContainer                    Center anchors
+    ├── PausedLabel (Label)            "PAUSED", font_size=36
+    ├── ResumeButton (Button)          → resumes game
+    ├── RestartButton (Button)         → reloads scene
+    └── MainMenuButton (Button)        → changes to main_menu.tscn
 
 Ball (CharacterBody2D)             ← ball.gd
 ├── CollisionShape2D                 CircleShape2D radius=8
@@ -78,7 +114,13 @@ StaticBody2D          - A physics body that does NOT move (walls)
 CharacterBody2D       - A physics body you move with code (paddles, ball)
 CollisionShape2D      - Defines the hitbox shape; child of a physics body
 ColorRect             - A simple colored rectangle (visuals for paddle/ball/center line)
-Label                 - Displays text on screen (score)
+Label                 - Displays text on screen (score, titles)
+Button               - A clickable button, emits pressed() signal
+Control              - Base node for all UI elements. Supports anchors/layout.
+VBoxContainer        - Arranges children vertically with spacing
+CanvasLayer          - Renders children on a separate layer (used for UI on
+                       top of Node2D scenes — required because Control anchors
+                       don't work under a Node2D parent)
 AudioStreamPlayer2D   - Plays a sound in 2D space (paddle hit, wall hit, scored)
 
 --- PHYSICS BODIES CHEAT SHEET ---
@@ -91,7 +133,7 @@ Area2D            → Detects overlaps but doesn't collide. (triggers, pickups)
 --- INPUT MAP ---
 
 Built-in actions:
-  ui_cancel (Escape)     → Quit the game
+  ui_cancel (Escape)     → Pause game / return to main menu / quit (context-dependent)
 
 Custom actions (defined in Project Settings > Input Map):
   ui_restart (R)         → Restart the game (only works after a win)
@@ -117,8 +159,12 @@ direction.bounce(normal)    → Reflect a vector across a surface normal (ball b
 get_viewport_rect().size    → Get the viewport dimensions as Vector2
 get_tree().quit()           → Close the game
 get_tree().reload_current_scene()  → Reload the current scene (restart)
+get_tree().change_scene_to_file(path) → Switch to a different scene entirely
+get_tree().paused = true/false → Pause/unpause the entire scene tree
 get_tree().create_timer(t).timeout → Create a one-shot timer, await it
+get_viewport().set_input_as_handled() → Stop an input event from propagating further
 set_physics_process(false)  → Disable _physics_process on a node (freeze it)
+show() / hide()             → Set the built-in 'visible' property to true/false
 clampf(value, min, max)     → Clamp a float between min and max
 minf(a, b)                  → Return the smaller of two floats
 randf_range(min, max)       → Random float in range
@@ -126,6 +172,7 @@ randi() % 2                 → Random 0 or 1 (coin flip)
 Vector2.from_angle(radians) → Create a unit vector from an angle
 Input.is_key_pressed(KEY)   → Check if a specific key is held down
 event.is_action_pressed(a)  → Check if an input action was just pressed
+button.pressed.connect(fn)  → Connect a button's pressed signal to a function
 
 --- GDSCRIPT BASICS ---
 
@@ -137,11 +184,24 @@ func _unhandled_input(event):  → Called for input not consumed by UI
 @export var speed := 400.0    → Editable in the Inspector panel
 @onready var ball = $Ball     → Gets a child node reference when ready
 await <signal>                → Pause execution until a signal fires
+class_name MyName             → Registers a global name for this script
+                                (accessible from any other script without
+                                preloading — great for constants/enums)
+
+--- NODE REFERENCES ---
+
+$NodeName              → Get a direct child by name
+$Parent/Child          → Get a nested child by path
+%UniqueName            → Get a node marked as "Unique Name" in the scene tree.
+                         Works regardless of where the node is in the hierarchy.
+                         Set via: right-click node → Access as Unique Name.
+@onready var x = %Name → Combine with @onready for typed, path-independent refs
 
 --- FILE TYPES ---
 
 .tscn     → Scene file (text format, describes node tree)
 .gd       → GDScript file (your code)
+.tres     → Resource file (themes, StyleBoxes, materials, etc.)
 .uid      → Godot's unique ID tracker (auto-generated, don't edit)
 .godot    → Project settings (can edit via UI: Project > Project Settings)
 .import   → Import settings for assets (auto-generated)
@@ -154,12 +214,57 @@ Ctrl+S            → Save current scene
 Ctrl+Shift+S      → Save all scenes
 Ctrl+A            → Add a new child node to selected node
 
+--- PROCESS MODES ---
+
+Every node has a Process Mode (Inspector > Node > Process > Mode):
+  Inherit        → Uses parent's mode (default)
+  Pausable       → Stops when get_tree().paused = true
+  When Paused    → ONLY runs when paused (opposite of Pausable)
+  Always         → Runs regardless of pause state
+  Disabled       → Never processes
+
+The pause menu uses "Always" so it can receive Escape input both
+when the game is running (to pause) and when paused (to resume).
+
+--- SCENE MANAGEMENT ---
+
+change_scene_to_file(path)  → Replaces the entire current scene with a new one.
+                              Old scene is freed. Used for menu navigation.
+reload_current_scene()      → Reloads the current scene from scratch (restart).
+CanvasLayer + instancing    → For overlays (like pause menu) that should appear
+                              ON TOP of the game without replacing it.
+
+Routes (class_name)         → Central file with scene path constants so paths
+                              are defined in one place. Usage: Routes.MAIN_MENU
+                              NOT an Autoload — no instance created, just a
+                              globally available class for static constants.
+
+--- UI / CONTROL NODES ---
+
+Control nodes use anchors to position themselves relative to their parent.
+Anchors only work when the parent is also a Control (or a CanvasLayer).
+
+Anchors Preset (set via Layout button at top of 2D viewport):
+  Full Rect    → Stretches to fill the entire parent
+  Center       → Sits at the center of the parent
+  Tip: Hold Shift when clicking a preset to also reset offsets.
+
+UI under Node2D: Control anchors DON'T WORK under a Node2D parent.
+  Solution: Add a CanvasLayer between the Node2D and the Control nodes.
+
+StyleBox resources (.tres): Saved style overrides that can be shared across
+  multiple buttons/controls. Edit once, all linked nodes update.
+
+visible property: Built-in on all CanvasItem nodes (Control, Node2D, etc.).
+  show() sets visible=true, hide() sets visible=false.
+  Used to toggle UI elements like the pause menu.
+
 --- PROJECT SETTINGS ---
 
 Viewport size:         1152 × 648
 Renderer:              Forward Plus (D3D12 on Windows)
 Background color:      Dark gray (0.1, 0.1, 0.1)
-Main scene:            res://scenes/game/main.tscn
+Main scene:            res://scenes/menu/main_menu.tscn
 
 --- COORDINATE SYSTEM ---
 
@@ -176,11 +281,26 @@ So:
 
 --- GAME FLOW ---
 
-1. Main scene loads → _ready() connects ball's scored signal
-2. Ball resets to center, waits 1 second, launches in random direction
-3. Players move paddles with W/S and Up/Down
-4. Ball bounces off walls and paddles, speeding up each hit
-5. When ball exits left/right edge → scored signal → score updates
-6. Ball resets to center and re-launches
-7. First player to 3 points wins → game freezes
-8. Press R to restart, Escape to quit
+1. Game launches → Main Menu appears
+2. Player picks Play Co-op → game.tscn loads
+3. game.gd _ready() connects ball's scored signal
+4. Ball resets to center, waits 1 second, launches in random direction
+5. Players move paddles with W/S and Up/Down
+6. Ball bounces off walls and paddles, speeding up each hit
+7. When ball exits left/right edge → scored signal → score updates
+8. Ball resets to center and re-launches
+9. First player to 3 points wins → game freezes
+10. Press R to restart
+11. Press Escape → pause menu (resume, restart, or return to main menu)
+12. Play AI / Settings → placeholder "Work in Progress" screen
+13. Quit from main menu → closes the game
+
+--- EDITOR TIPS ---
+
+Renaming files:  Always rename via the FileSystem dock (right-click → Rename).
+                 Godot auto-updates all references. Renaming outside Godot
+                 breaks scene/script references.
+
+Re-attaching scripts: If a script reference breaks, select the node →
+                      Inspector → Script property → drag the file from
+                      FileSystem dock. No need to detach/reattach.
