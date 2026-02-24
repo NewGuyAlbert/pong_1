@@ -3,6 +3,7 @@ extends Node2D
 @export var win_score := 3
 var score_left := 0
 var score_right := 0
+var winner := ""
 
 @onready var ball: CharacterBody2D = $Ball
 @onready var left_paddle: CharacterBody2D = $LeftPaddle
@@ -11,8 +12,6 @@ var score_right := 0
 
 
 # TODO:
-# Add restart button for new game or even during a game.
-# Ask ai what it would refactor from this code and why
 # Make the game work for multiple screen sizes. Also some pixel values are hardcoded
 # Add pause menu
 # Add menu between pvp and pve
@@ -32,7 +31,6 @@ func _on_ball_scored(player: String) -> void:
 	score_label.text = "%d : %d" % [score_left, score_right]
 
 	# Win condition: first to win_score points
-	var winner := ""
 	if score_left >= win_score:
 		winner = "Player 1"
 	elif score_right >= win_score:
@@ -46,5 +44,9 @@ func _on_ball_scored(player: String) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Close game
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().quit()
+	# Restart game (after a win)
+	if event.is_action_pressed("ui_restart") and winner != "":
+		get_tree().reload_current_scene()
