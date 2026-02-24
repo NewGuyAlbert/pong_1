@@ -11,7 +11,6 @@ var score_right := 0
 
 
 # TODO:
-# Add audio on ball hit and score
 # Add restart button for new game or even during a game.
 # Ask ai what it would refactor from this code and why
 # Make the game work for multiple screen sizes. Also some pixel values are hardcoded

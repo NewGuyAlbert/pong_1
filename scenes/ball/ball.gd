@@ -9,9 +9,11 @@ signal scored(player: String)
 
 var speed: float
 var direction: Vector2 = Vector2.ZERO
+var _resetting := false  # Used to prevent multiple launches during reset.
 
-# Used to prevent multiple launches during reset.
-var _resetting := false
+@onready var paddle_hit_sound: AudioStreamPlayer2D = $PaddleHitSound
+@onready var wall_hit_sound: AudioStreamPlayer2D = $WallHitSound
+@onready var scored_sound: AudioStreamPlayer2D = $ScoredSound
 
 
 # This is called when the node enters the scene tree for the first time.
@@ -53,11 +55,19 @@ func _physics_process(delta: float) -> void:
 		# Speed up slightly on each hit, capped at max_speed
 		speed = minf(speed * speed_increment, max_speed)
 
+		var collider := collision.get_collider()
+		if collider is CharacterBody2D:
+			paddle_hit_sound.play()  # Hit the paddle
+		elif collider is StaticBody2D:
+			wall_hit_sound.play()  # Hit the wall
+
 	# Check for scoring
 	var vp := get_viewport_rect().size
 	if position.x < 0:
 		scored.emit("right")
+		scored_sound.play()
 		reset()
 	elif position.x > vp.x:
 		scored.emit("left")
+		scored_sound.play()
 		reset()
