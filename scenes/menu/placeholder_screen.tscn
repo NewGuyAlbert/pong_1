@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://c7x8r5b0cs0g1"]
 
 [ext_resource type="Script" uid="uid://b03ckxwwedtx2" path="res://scenes/menu/placeholder_screen.gd" id="1_5o1j6"]
+[ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="2_uerj4"]
+[ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="3_wxwww"]
 
 [node name="PlaceholderScreen" type="Control" unique_id=158488908]
 layout_mode = 3
@@ -35,4 +37,6 @@ offset_left = 20.0
 offset_top = 20.0
 offset_right = 83.0
 offset_bottom = 51.0
+theme_override_styles/normal = ExtResource("2_uerj4")
+theme_override_styles/hover = ExtResource("3_wxwww")
 text = "← Back"

@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://blr2015ge1is5"]
+
+[ext_resource type="Script" uid="uid://dau1m7lf8mane" path="res://scenes/game/pause_menu.gd" id="1_aj248"]
+[ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="2_0n058"]
+[ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="3_1gnl8"]
+
+[node name="PauseMenu" type="Control" unique_id=1696648110]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_aj248")
+
+[node name="DimBackground" type="ColorRect" parent="." unique_id=985205461]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.23529412)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1057634509]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -69.5
+offset_top = -95.5
+offset_right = 69.5
+offset_bottom = 95.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="PausedLabel" type="Label" parent="VBoxContainer" unique_id=1098647685]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "PAUSED"
+
+[node name="ResumeButton" type="Button" parent="VBoxContainer" unique_id=543479838]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_0n058")
+theme_override_styles/hover = ExtResource("3_1gnl8")
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="VBoxContainer" unique_id=485685913]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_0n058")
+theme_override_styles/hover = ExtResource("3_1gnl8")
+text = "Restart"
+
+[node name="MainMenuButton" type="Button" parent="VBoxContainer" unique_id=710603507]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_0n058")
+theme_override_styles/hover = ExtResource("3_1gnl8")
+text = "Main Menu"

@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://dooogqu6jksgb"]
 
 [ext_resource type="Script" uid="uid://bu7lg02fv1mhk" path="res://scenes/menu/main_menu.gd" id="1_nl8w3"]
+[ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="2_247la"]
+[ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="3_kiqgm"]
 
 [node name="MainMenu" type="Control" unique_id=813711118]
 layout_mode = 3
@@ -52,19 +54,27 @@ text = "by NewGuyAlbert"
 [node name="PlayCoopButton" type="Button" parent="VBoxContainer" unique_id=998612857]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/normal = ExtResource("2_247la")
+theme_override_styles/hover = ExtResource("3_kiqgm")
 text = "Play Co-op"
 
 [node name="PlayAIButton" type="Button" parent="VBoxContainer" unique_id=426976038]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/normal = ExtResource("2_247la")
+theme_override_styles/hover = ExtResource("3_kiqgm")
 text = "Play AI"
 
 [node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=285908879]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/normal = ExtResource("2_247la")
+theme_override_styles/hover = ExtResource("3_kiqgm")
 text = "Settings"
 
 [node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=454544130]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_styles/normal = ExtResource("2_247la")
+theme_override_styles/hover = ExtResource("3_kiqgm")
 text = "Quit"

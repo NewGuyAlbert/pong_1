@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://d0xywq2flu6oe" path="res://scenes/game/game.gd" id="1_0sr1o"]
 [ext_resource type="PackedScene" uid="uid://5fg34ynkvh3n" path="res://scenes/paddle/paddle.tscn" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://bcnbmoivcm7yp" path="res://scenes/ball/ball.tscn" id="3_h2yge"]
+[ext_resource type="PackedScene" uid="uid://blr2015ge1is5" path="res://scenes/game/pause_menu.tscn" id="4_kelw5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7dm0k"]
 size = Vector2(1152, 20)
@@ -46,4 +47,8 @@ horizontal_alignment = 1
 offset_left = 575.0
 offset_right = 577.0
 offset_bottom = 648.0
-color = Color(1, 1, 1, 0.39215687)
+color = Color(1, 1, 1, 0.19607843)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=39697164]
+
+[node name="PauseMenu" parent="CanvasLayer" unique_id=1696648110 instance=ExtResource("4_kelw5")]
