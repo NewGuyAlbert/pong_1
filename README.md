@@ -6,6 +6,7 @@ This project is for personal learning.
 ## TODOs
 
 - Check for inconsistent solutions across project.
+- Update winning text. Add sound for winning. Write somewhere about how to restart, pressing r or esc.
 - Add sounds for button hovers and clicks. Make menu interactible with arrow keys and Enter key.
 - Make the game work for multiple screen sizes. Also some pixel values are hardcoded. Implement settings menu.
 - Add AI opponent. (easy, medium, hard)
