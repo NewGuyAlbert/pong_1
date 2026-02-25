@@ -24,9 +24,12 @@ offset_bottom = 8.0
 
 [node name="PaddleHitSound" type="AudioStreamPlayer2D" parent="." unique_id=1683892972]
 stream = ExtResource("2_nv6q1")
+volume_db = -2.0
 
 [node name="WallHitSound" type="AudioStreamPlayer2D" parent="." unique_id=504458070]
 stream = ExtResource("3_stoaj")
+volume_db = -2.0
 
 [node name="ScoredSound" type="AudioStreamPlayer2D" parent="." unique_id=445088513]
 stream = ExtResource("4_xotqv")
+volume_db = -2.0

@@ -6,10 +6,15 @@ This project is for personal learning.
 ## TODOs
 
 - Check for inconsistent solutions across project.
-- Update winning text. Add sound for winning. Write somewhere about how to restart, pressing r or esc.
+- Update ball hit logic. Different parts of the paddle should change the return angle of the ball.
+- Update winning text. Write somewhere about how to restart, pressing r or esc.
 - Add sounds for button hovers and clicks. Make menu interactible with arrow keys and Enter key.
 - Make the game work for multiple screen sizes. Also some pixel values are hardcoded. Implement settings menu.
 - Add AI opponent. (easy, medium, hard)
+    easy - Calculates the current y axis of the ball and tries to match it.
+    medium - Calculates the current y axis of the ball and takes shot angle into consideration.
+    hard - Calculates the current y axis of the ball, takes shot angle into consideration and potential wall hits.
+    Misc: Add impossible difficulty that gets unlocked after beating hard. Make that actually not possible to beat. Add reaction delay to logic. Add error margin in the calculation that is random.
 - Make it playable with controllers. (On most of the main platforms eg: Windows, Linux, Mac)
 
 ## Setup

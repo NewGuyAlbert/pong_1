@@ -15,6 +15,10 @@ run/main_scene="uid://dooogqu6jksgb"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+UiSounds="*res://scenes/global/ui_sounds.gd"
+
 [input]
 
 ui_restart={

@@ -9,6 +9,7 @@ var winner := ""
 @onready var left_paddle: CharacterBody2D = $LeftPaddle
 @onready var right_paddle: CharacterBody2D = $RightPaddle
 @onready var score_label: Label = $ScoreLabel
+@onready var victory_sound: AudioStreamPlayer = $VictorySound
 
 
 func _ready() -> void:
@@ -34,6 +35,9 @@ func _on_ball_scored(player: String) -> void:
 		ball.set_physics_process(false)
 		left_paddle.set_physics_process(false)
 		right_paddle.set_physics_process(false)
+		victory_sound.play()
+	else:
+		ball.scored_sound.play()
 
 
 func _unhandled_input(event: InputEvent) -> void:

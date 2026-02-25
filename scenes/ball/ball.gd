@@ -65,9 +65,7 @@ func _physics_process(delta: float) -> void:
 	var vp := get_viewport_rect().size
 	if position.x < 0:
 		scored.emit("right")
-		scored_sound.play()
 		reset()
 	elif position.x > vp.x:
 		scored.emit("left")
-		scored_sound.play()
 		reset()
