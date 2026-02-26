@@ -14,11 +14,12 @@ func _ready() -> void:
 
 
 func _on_play_coop() -> void:
+	GameSettings.ai_enabled = false
 	get_tree().change_scene_to_file(Routes.GAME)
 
 
 func _on_play_ai() -> void:
-	get_tree().change_scene_to_file(Routes.PLACEHOLDER_SCREEN)
+	get_tree().change_scene_to_file(Routes.DIFFICULTY_MENU)
 
 
 func _on_settings() -> void:

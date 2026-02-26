@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://c12bbdvktae2c"]
+
+[ext_resource type="Script" uid="uid://8jtyxq1b4liu" path="res://scenes/menu/difficulty_menu.gd" id="1_i1j5u"]
+[ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="1_m7xj0"]
+[ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="2_i1j5u"]
+
+[node name="DifficultyMenu" type="Control" unique_id=2082396866]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_i1j5u")
+
+[node name="BackButton" type="Button" parent="." unique_id=70380148]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 83.0
+offset_bottom = 51.0
+text = "← Back"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1023155884]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -36.0
+offset_top = -50.5
+offset_right = 36.0
+offset_bottom = 50.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="EasyButton" type="Button" parent="VBoxContainer" unique_id=920623369]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("1_m7xj0")
+theme_override_styles/hover = ExtResource("2_i1j5u")
+text = "Easy"
+
+[node name="MediumButton" type="Button" parent="VBoxContainer" unique_id=1621267086]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("1_m7xj0")
+theme_override_styles/hover = ExtResource("2_i1j5u")
+text = "Medium"
+
+[node name="HardButton" type="Button" parent="VBoxContainer" unique_id=1480969310]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = ExtResource("1_m7xj0")
+theme_override_styles/hover = ExtResource("1_m7xj0")
+text = "Hard"

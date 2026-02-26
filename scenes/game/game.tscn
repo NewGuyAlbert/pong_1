@@ -32,7 +32,6 @@ position = Vector2(40, 324)
 
 [node name="RightPaddle" parent="." unique_id=1196709304 instance=ExtResource("1_ig7tw")]
 position = Vector2(1112, 324)
-is_left_player = false
 
 [node name="ScoreLabel" type="Label" parent="." unique_id=1401867053]
 offset_top = 10.0

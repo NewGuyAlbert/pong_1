@@ -6,6 +6,7 @@ This project is for personal learning.
 ## TODOs
 
 - Check for inconsistent solutions across project.
+- Ball can be squeezed in the corner bug.
 - Update ball hit logic. Different parts of the paddle should change the return angle of the ball.
 - Update winning text. Write somewhere about how to restart, pressing r or esc.
 - Add sounds for button hovers and clicks. Make menu interactible with arrow keys and Enter key.

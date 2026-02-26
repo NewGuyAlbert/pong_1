@@ -14,6 +14,14 @@ var winner := ""
 
 func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
+	if GameSettings.ai_enabled:
+		# Pass ball reference to AI paddle for tracking
+		right_paddle._ball = ball
+		right_paddle._is_ai = true
+
+	# Set player sides for input handling
+	right_paddle._is_left_player = false
+	left_paddle._is_left_player = true
 
 
 func _on_ball_scored(player: String) -> void:
