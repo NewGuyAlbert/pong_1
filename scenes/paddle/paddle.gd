@@ -4,13 +4,35 @@ const AI_ERROR_RANGE := 50.0  # Max pixels of offset in either direction
 
 @export var speed := 400.0
 
-var _is_ai := false  # Value set by game.gd
-var _is_left_player := false  # Value set by game.gd
-var _ball: CharacterBody2D  # Value set by game.gd
+var _is_ai := false
+var _up_key: Key = KEY_W
+var _down_key: Key = KEY_S
+var _alt_up_key: Key = KEY_NONE
+var _alt_down_key: Key = KEY_NONE
+var _ball: CharacterBody2D  # Only used by AI paddle
 var _clamp_height: float  # Needed to keep paddle within screen bounds
 
 # AI error margin: random offset so the paddle doesn't perfectly track the ball
 var _ai_error_offset := 0.0
+
+
+## Call this after adding the paddle to the scene tree to set up controls.
+## For AI paddle, pass the ball reference; for player paddles pass null.
+## Optional alt keys allow a second set of controls (e.g. arrow keys + WASD in PvE).
+func configure(
+	up_key: Key,
+	down_key: Key,
+	ball: CharacterBody2D = null,
+	alt_up_key: Key = KEY_NONE,
+	alt_down_key: Key = KEY_NONE
+) -> void:
+	_up_key = up_key
+	_down_key = down_key
+	_alt_up_key = alt_up_key
+	_alt_down_key = alt_down_key
+	if ball:
+		_ball = ball
+		_is_ai = true
 
 
 func _ready() -> void:
@@ -19,38 +41,30 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var direction := 0.0
+	var motion := Vector2.ZERO
 
-	# AI input and mode is pve
 	if _is_ai and GameSettings.ai_enabled:
 		if GameSettings.ai_difficulty == 0:
-			_ai_move_easy(delta)
+			motion = _ai_get_motion_easy(delta)
 		elif GameSettings.ai_difficulty == 1:
-			_ai_move_easy(delta)  # WIP
+			motion = _ai_get_motion_easy(delta)  # WIP
 		elif GameSettings.ai_difficulty == 2:
-			_ai_move_easy(delta)  # WIP
+			motion = _ai_get_motion_easy(delta)  # WIP
 	else:
-		# Player input and mode is pve
-		if _is_left_player and GameSettings.ai_enabled:
-			if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
-				direction -= 1.0
-			if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
-				direction += 1.0
-		# Left player input and mode is pvp
-		elif _is_left_player:
-			if Input.is_key_pressed(KEY_W):
-				direction -= 1.0
-			if Input.is_key_pressed(KEY_S):
-				direction += 1.0
-		# Right player input and mode is pvp
-		else:
-			if Input.is_key_pressed(KEY_UP):
-				direction -= 1.0
-			if Input.is_key_pressed(KEY_DOWN):
-				direction += 1.0
+		var direction := 0.0
+		if (
+			Input.is_key_pressed(_up_key)
+			or (_alt_up_key != KEY_NONE and Input.is_key_pressed(_alt_up_key))
+		):
+			direction -= 1.0
+		if (
+			Input.is_key_pressed(_down_key)
+			or (_alt_down_key != KEY_NONE and Input.is_key_pressed(_alt_down_key))
+		):
+			direction += 1.0
+		motion = Vector2(0, direction * speed * delta)
 
-		var motion := Vector2(0, direction * speed * delta)
-		move_and_collide(motion)
+	move_and_collide(motion)
 
 	# Keep paddle within screen bounds
 	position.y = clampf(
@@ -63,19 +77,19 @@ func randomize_ai_error() -> void:
 	_ai_error_offset = randf_range(-AI_ERROR_RANGE, AI_ERROR_RANGE)
 
 
-func _ai_move_easy(delta: float) -> void:
-	# If ball reference is not set, do nothing.
+## Returns the AI motion vector for easy difficulty, using move_toward
+## to smoothly approach the target without overshooting.
+func _ai_get_motion_easy(delta: float) -> Vector2:
 	if _ball == null:
-		return
+		return Vector2.ZERO
 
-	var target_y = _ball.position.y + _ai_error_offset
+	var target_y := _ball.position.y + _ai_error_offset
 
 	# Track the ball 4 times slower when it's moving away from the paddle.
-	if _ball.direction.x < 0:
-		position.y = move_toward(position.y, target_y, speed / 4 * delta)
+	var tracking_speed := speed / 4.0 if _ball.direction.x < 0 else speed
 
-	# Track the ball at normal speed when it's moving towards the paddle.
-	else:
-		position.y = move_toward(position.y, target_y, speed * delta)
+	# move_toward stops exactly at the target, preventing overshoot jitter
+	var new_y := move_toward(position.y, target_y, tracking_speed * delta)
+	return Vector2(0, new_y - position.y)
 
 # TODO: Implement medium and hard AI modes.

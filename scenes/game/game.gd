@@ -15,14 +15,15 @@ var winner := ""
 func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
 	ball.paddle_hit.connect(_on_ball_paddle_hit)
-	if GameSettings.ai_enabled:
-		# Pass ball reference to AI paddle for tracking
-		right_paddle._ball = ball
-		right_paddle._is_ai = true
 
-	# Set player sides for input handling
-	right_paddle._is_left_player = false
-	left_paddle._is_left_player = true
+	if GameSettings.ai_enabled:
+		# PvE: left player gets W/S + arrow keys, right paddle is AI
+		left_paddle.configure(KEY_W, KEY_S, null, KEY_UP, KEY_DOWN)
+		right_paddle.configure(KEY_UP, KEY_DOWN, ball)
+	else:
+		# PvP: left player W/S, right player arrow keys
+		left_paddle.configure(KEY_W, KEY_S)
+		right_paddle.configure(KEY_UP, KEY_DOWN)
 
 
 func _on_ball_scored(player: String) -> void:
@@ -37,7 +38,7 @@ func _on_ball_scored(player: String) -> void:
 	if score_left >= win_score:
 		winner = "Player 1"
 	elif score_right >= win_score:
-		winner = "Player 2"
+		winner = "CPU" if GameSettings.ai_enabled else "Player 2"
 
 	if winner != "":
 		score_label.text = "%s Wins! %d - %d" % [winner, score_left, score_right]
@@ -49,8 +50,8 @@ func _on_ball_scored(player: String) -> void:
 		ball.scored_sound.play()
 
 
-func _on_ball_paddle_hit(_paddle: CharacterBody2D) -> void:
-	if GameSettings.ai_enabled:
+func _on_ball_paddle_hit(paddle: CharacterBody2D) -> void:
+	if GameSettings.ai_enabled and paddle == right_paddle:
 		right_paddle.randomize_ai_error()
 
 
