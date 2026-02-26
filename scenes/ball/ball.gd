@@ -1,11 +1,14 @@
 extends CharacterBody2D
 
 signal scored(player: String)
+signal paddle_hit(paddle: CharacterBody2D)
 
-@export var initial_speed := 300.0
+@export var initial_speed := 400.0
 @export var speed_increment := 1.05
 @export var max_speed := 2000.0
 @export var reset_delay := 1.0
+
+@export var max_bounce_angle := deg_to_rad(50.0)  # Steepest angle when hitting paddle edge
 
 var speed: float
 var direction: Vector2 = Vector2.ZERO
@@ -49,17 +52,33 @@ func _physics_process(delta: float) -> void:
 	# any physics body (paddle, wall, etc.) — no paddle-specific logic needed.
 	var collision := move_and_collide(direction * speed * delta)
 	if collision:
-		# bounce() reflects the direction across the surface normal of whatever
-		# was hit, simulating a realistic bounce off any collider.
-		direction = direction.bounce(collision.get_normal())
+		var collider := collision.get_collider()
+
+		if collider is CharacterBody2D:
+			var paddle_height: float = collider.get_node("CollisionShape2D").shape.size.y
+
+			# Where the ball hit the paddle, normalized to -1 (top) to 1 (bottom)
+			var offset := clampf(
+				(position.y - collider.position.y) / (paddle_height / 2.0), -1.0, 1.0
+			)
+
+			# Calculate bounce angle based on hit location, with a maximum angle limit
+			var bounce_angle := offset * max_bounce_angle
+
+			# Reverse horizontal direction from the *incoming* direction (before any bounce)
+			var x_dir := -signf(direction.x)
+			direction = Vector2(x_dir * cos(bounce_angle), sin(bounce_angle)).normalized()
+
+			paddle_hit_sound.play()
+			paddle_hit.emit(collider)
+		elif collider is StaticBody2D:
+			direction = direction.bounce(collision.get_normal())
+			wall_hit_sound.play()  # Hit the wall
+		else:
+			direction = direction.bounce(collision.get_normal())
+
 		# Speed up slightly on each hit, capped at max_speed
 		speed = minf(speed * speed_increment, max_speed)
-
-		var collider := collision.get_collider()
-		if collider is CharacterBody2D:
-			paddle_hit_sound.play()  # Hit the paddle
-		elif collider is StaticBody2D:
-			wall_hit_sound.play()  # Hit the wall
 
 	# Check for scoring
 	var vp := get_viewport_rect().size

@@ -14,6 +14,7 @@ var winner := ""
 
 func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
+	ball.paddle_hit.connect(_on_ball_paddle_hit)
 	if GameSettings.ai_enabled:
 		# Pass ball reference to AI paddle for tracking
 		right_paddle._ball = ball
@@ -46,6 +47,11 @@ func _on_ball_scored(player: String) -> void:
 		victory_sound.play()
 	else:
 		ball.scored_sound.play()
+
+
+func _on_ball_paddle_hit(_paddle: CharacterBody2D) -> void:
+	if GameSettings.ai_enabled:
+		right_paddle.randomize_ai_error()
 
 
 func _unhandled_input(event: InputEvent) -> void:

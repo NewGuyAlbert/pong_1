@@ -1,11 +1,16 @@
 extends CharacterBody2D
 
+const AI_ERROR_RANGE := 50.0  # Max pixels of offset in either direction
+
 @export var speed := 400.0
 
 var _is_ai := false  # Value set by game.gd
 var _is_left_player := false  # Value set by game.gd
 var _ball: CharacterBody2D  # Value set by game.gd
 var _clamp_height: float  # Needed to keep paddle within screen bounds
+
+# AI error margin: random offset so the paddle doesn't perfectly track the ball
+var _ai_error_offset := 0.0
 
 
 func _ready() -> void:
@@ -53,11 +58,24 @@ func _physics_process(delta: float) -> void:
 	)
 
 
-# TODO: add more fun stuff.
-# For example it shoulnd't adjust when the the ball goes towards the player.
-# Add some human like delay. Add error margin when tracking the ball.
+# Called by the ball when it collides with this paddle.
+func randomize_ai_error() -> void:
+	_ai_error_offset = randf_range(-AI_ERROR_RANGE, AI_ERROR_RANGE)
+
+
 func _ai_move_easy(delta: float) -> void:
+	# If ball reference is not set, do nothing.
 	if _ball == null:
 		return
-	var target_y := _ball.position.y
-	position.y = move_toward(position.y, target_y, speed * delta)
+
+	var target_y = _ball.position.y + _ai_error_offset
+
+	# Track the ball 4 times slower when it's moving away from the paddle.
+	if _ball.direction.x < 0:
+		position.y = move_toward(position.y, target_y, speed / 4 * delta)
+
+	# Track the ball at normal speed when it's moving towards the paddle.
+	else:
+		position.y = move_toward(position.y, target_y, speed * delta)
+
+# TODO: Implement medium and hard AI modes.
