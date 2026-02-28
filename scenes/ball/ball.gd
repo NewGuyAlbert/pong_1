@@ -9,6 +9,7 @@ signal paddle_hit(paddle: CharacterBody2D)
 @export var reset_delay := 1.0
 
 @export var max_bounce_angle := deg_to_rad(50.0)  # Steepest angle when hitting paddle edge
+@export var debug_draw := true  # Toggle to show/hide predicted ball path
 
 var speed: float
 var direction: Vector2 = Vector2.ZERO
@@ -54,6 +55,7 @@ func _physics_process(delta: float) -> void:
 	if collision:
 		var collider := collision.get_collider()
 
+		# This means we hit a paddle.
 		if collider is CharacterBody2D:
 			var paddle_height: float = collider.get_node("CollisionShape2D").shape.size.y
 
@@ -63,10 +65,14 @@ func _physics_process(delta: float) -> void:
 			)
 
 			# Calculate bounce angle based on hit location, with a maximum angle limit
+			# Hitting the center of the paddle (offset=0) results in a straight horizontal bounce (0°),
+			# while hitting the edge (offset=±1) results in the maximum bounce angle
 			var bounce_angle := offset * max_bounce_angle
 
 			# Reverse horizontal direction from the *incoming* direction (before any bounce)
 			var x_dir := -signf(direction.x)
+			# cos(45°) = 0.707, sin(45°) = 0.707 → ball goes at a 45° diagonal
+			# cos(30°) = 0.866, sin(30°) = 0.5 → ball goes at a 30° diagonal
 			direction = Vector2(x_dir * cos(bounce_angle), sin(bounce_angle)).normalized()
 
 			paddle_hit_sound.play()
@@ -80,6 +86,9 @@ func _physics_process(delta: float) -> void:
 		# Speed up slightly on each hit, capped at max_speed
 		speed = minf(speed * speed_increment, max_speed)
 
+	if debug_draw:
+		queue_redraw()
+
 	# Check for scoring
 	var vp := get_viewport_rect().size
 	if position.x < 0:
@@ -88,3 +97,38 @@ func _physics_process(delta: float) -> void:
 	elif position.x > vp.x:
 		scored.emit("left")
 		reset()
+
+
+## Debug: draws the predicted ball path, bouncing off walls, until it reaches a side.
+func _draw() -> void:
+	if not debug_draw or direction == Vector2.ZERO:
+		return
+	var target_x := get_viewport_rect().size.x if direction.x > 0 else 0.0
+	var points := (
+		BallPredictor
+		. simulate_path(
+			position,
+			direction,
+			target_x,
+			$CollisionShape2D.shape.radius,
+			get_viewport_rect().size,
+		)
+	)
+	BallPredictor.draw_prediction(self, points)
+
+
+## Predicts the Y coordinate where the ball will reach the given X.
+## If include_bounces is true, simulates wall reflections; otherwise returns NAN
+## when a wall would be hit before reaching target_x.
+func predict_y(target_x: float, include_bounces: bool = true) -> float:
+	return (
+		BallPredictor
+		. predict_y(
+			position,
+			direction,
+			target_x,
+			$CollisionShape2D.shape.radius,
+			get_viewport_rect().size,
+			include_bounces,
+		)
+	)

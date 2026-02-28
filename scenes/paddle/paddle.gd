@@ -1,7 +1,5 @@
 extends CharacterBody2D
 
-const AI_ERROR_RANGE := 50.0  # Max pixels of offset in either direction
-
 @export var speed := 400.0
 
 var _is_ai := false
@@ -45,11 +43,11 @@ func _physics_process(delta: float) -> void:
 
 	if _is_ai and GameSettings.ai_enabled:
 		if GameSettings.ai_difficulty == 0:
-			motion = _ai_get_motion_easy(delta)
+			motion = PaddleAI.get_motion_easy(self, _ball, _ai_error_offset, delta)
 		elif GameSettings.ai_difficulty == 1:
-			motion = _ai_get_motion_easy(delta)  # WIP
+			motion = PaddleAI.get_motion_medium(self, _ball, _ai_error_offset, delta)
 		elif GameSettings.ai_difficulty == 2:
-			motion = _ai_get_motion_easy(delta)  # WIP
+			motion = PaddleAI.get_motion_hard(self, _ball, _ai_error_offset, delta)
 	else:
 		var direction := 0.0
 		if (
@@ -74,22 +72,4 @@ func _physics_process(delta: float) -> void:
 
 # Called by the ball when it collides with this paddle.
 func randomize_ai_error() -> void:
-	_ai_error_offset = randf_range(-AI_ERROR_RANGE, AI_ERROR_RANGE)
-
-
-## Returns the AI motion vector for easy difficulty, using move_toward
-## to smoothly approach the target without overshooting.
-func _ai_get_motion_easy(delta: float) -> Vector2:
-	if _ball == null:
-		return Vector2.ZERO
-
-	var target_y := _ball.position.y + _ai_error_offset
-
-	# Track the ball 4 times slower when it's moving away from the paddle.
-	var tracking_speed := speed / 4.0 if _ball.direction.x < 0 else speed
-
-	# move_toward stops exactly at the target, preventing overshoot jitter
-	var new_y := move_toward(position.y, target_y, tracking_speed * delta)
-	return Vector2(0, new_y - position.y)
-
-# TODO: Implement medium and hard AI modes.
+	_ai_error_offset = randf_range(-PaddleAI.get_error_range(), PaddleAI.get_error_range())
