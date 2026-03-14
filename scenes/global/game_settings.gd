@@ -9,6 +9,21 @@ var win_score := 3
 var ball_speed := 400.0
 var master_volume := 0.5  # 0.0 to 1.0
 
+# Tracks whether the most recent input came from a controller.
+# Used to display the correct button prompts (e.g. "Press R" vs "Press Y").
+var last_input_is_controller := false
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton:
+		last_input_is_controller = true
+	elif event is InputEventJoypadMotion:
+		# Ignore stick drift / idle noise — only count deliberate movement.
+		if absf(event.axis_value) > 0.5:
+			last_input_is_controller = true
+	elif event is InputEventKey or event is InputEventMouseButton:
+		last_input_is_controller = false
+
 
 func apply_fullscreen() -> void:
 	if fullscreen:

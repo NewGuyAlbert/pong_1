@@ -51,7 +51,7 @@ func _on_ball_scored(player: String) -> void:
 
 	if winner != "":
 		winner_label.text = "%s Wins!" % winner
-		restart_label.text = "Press R to Restart · Esc for Menu"
+		restart_label.text = _get_restart_text()
 		winner_label.show()
 		restart_label.show()
 		ball.set_physics_process(false)
@@ -67,10 +67,22 @@ func _on_ball_paddle_hit(paddle: CharacterBody2D) -> void:
 		right_paddle.randomize_ai_error()
 
 
+func _process(_delta: float) -> void:
+	# Keep the restart prompt in sync with the current input device.
+	if winner != "":
+		restart_label.text = _get_restart_text()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Restart game (after a win)
 	if event.is_action_pressed("ui_restart") and winner != "":
 		get_tree().reload_current_scene()
+
+
+func _get_restart_text() -> String:
+	if GameSettings.last_input_is_controller:
+		return "Press \u25B3 to Restart \u00b7 \u25CB for Menu"
+	return "Press R to Restart \u00b7 Esc for Menu"
 
 
 ## Positions all game elements based on the current viewport size.
