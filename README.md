@@ -7,19 +7,19 @@ This project is for personal learning.
 
 - Check for inconsistent solutions across project.
 - Ball can be squeezed in the corner bug.
-- Update ball hit logic. Different parts of the paddle should change the return angle of the ball.
-- Update winning text. Write somewhere about how to restart, pressing r or esc.
-- Make menu interactible with arrow keys and Enter key.
-- Make the game work for multiple screen sizes. Also some pixel values are hardcoded. Implement settings menu.
-- Add AI opponent. (easy, medium, hard)
-    medium - Calculates the current y axis of the ball and takes shot angle into consideration.
-    hard - Calculates the current y axis of the ball, takes shot angle into consideration and potential wall hits.
-- Make it playable with controllers. (On most of the main platforms eg: Windows, Linux, Mac)
 
 ## Setup
 
 How to export the game:
-WIP
+
+1. Open the project in Godot 4.
+2. Go to **Project → Export...**.
+3. The **Windows Desktop** preset is already configured.
+4. Click **Export Project...**, choose a location, and save.
+   - Check **Export as ZIP** for a compressed archive, or uncheck it for a standalone `.exe` + `.pck`.
+5. To run, extract the ZIP (if applicable) and launch the `.exe`.
+
+> **Note:** You need the [Godot export templates](https://docs.godotengine.org/en/stable/tutorials/export/exporting_projects.html#export-templates) installed. Godot will prompt you to download them if missing (**Editor → Manage Export Templates → Download and Install**).
 
 ### VS Code (optional)
 

@@ -1,5 +1,8 @@
 extends Node2D
 
+const PADDLE_MARGIN := 40.0
+const WALL_THICKNESS := 20.0
+
 var score_left := 0
 var score_right := 0
 var winner := ""
@@ -8,13 +11,12 @@ var winner := ""
 @onready var left_paddle: CharacterBody2D = $LeftPaddle
 @onready var right_paddle: CharacterBody2D = $RightPaddle
 @onready var score_label: Label = $ScoreLabel
+@onready var winner_label: Label = %WinnerLabel
+@onready var restart_label: Label = %RestartLabel
 @onready var victory_sound: AudioStreamPlayer = $VictorySound
 @onready var top_wall: StaticBody2D = $TopWall
 @onready var bottom_wall: StaticBody2D = $BottomWall
 @onready var center_line: ColorRect = $CenterLine
-
-const PADDLE_MARGIN := 40.0
-const WALL_THICKNESS := 20.0
 
 
 func _ready() -> void:
@@ -48,7 +50,10 @@ func _on_ball_scored(player: String) -> void:
 		winner = "CPU" if GameSettings.ai_enabled else "Player 2"
 
 	if winner != "":
-		score_label.text = "%s Wins! %d - %d" % [winner, score_left, score_right]
+		winner_label.text = "%s Wins!" % winner
+		restart_label.text = "Press R to Restart · Esc for Menu"
+		winner_label.show()
+		restart_label.show()
 		ball.set_physics_process(false)
 		left_paddle.set_physics_process(false)
 		right_paddle.set_physics_process(false)

@@ -53,6 +53,43 @@ color = Color(1, 1, 1, 0.19607843)
 
 [node name="PauseMenu" parent="CanvasLayer" unique_id=1696648110 instance=ExtResource("4_kelw5")]
 
+[node name="WinnerLabel" type="Label" parent="CanvasLayer" unique_id=1501928471]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -60.0
+offset_right = 300.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartLabel" type="Label" parent="CanvasLayer" unique_id=1501928472]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 10.0
+offset_right = 300.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="VictorySound" type="AudioStreamPlayer" parent="." unique_id=1288528583]
 stream = ExtResource("5_vic01")
 volume_db = -1.0
