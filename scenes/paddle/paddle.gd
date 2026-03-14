@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
-@export var speed := 400.0
+@export var speed := 400.0  # AI base speed
+@export var player_speed := 600.0  # Player base speed
 
 var _is_ai := false
 var _up_action: String = ""
@@ -12,6 +13,13 @@ var _clamp_height: float  # Needed to keep paddle within screen bounds
 
 # AI error margin: random offset so the paddle doesn't perfectly track the ball
 var _ai_error_offset := 0.0
+
+# Reaction delay state for Easy AI
+var _ai_reaction_timer := 0.0
+var _ai_ball_was_approaching := false
+
+# Medium AI: whether to fall back to chasing instead of predicting (rolled per rally)
+var _ai_medium_chase_fallback := false
 
 
 ## Call this after adding the paddle to the scene tree to set up controls.
@@ -43,9 +51,25 @@ func _physics_process(delta: float) -> void:
 
 	if _is_ai and GameSettings.ai_enabled:
 		if GameSettings.ai_difficulty == 0:
-			motion = PaddleAI.get_motion_easy(self, _ball, _ai_error_offset, delta)
+			# Reaction delay: pause briefly when ball first starts approaching
+			var approaching := PaddleAI._is_approaching(self, _ball)
+			if approaching and not _ai_ball_was_approaching:
+				_ai_reaction_timer = PaddleAI.REACTION_DELAY_EASY
+			_ai_ball_was_approaching = approaching
+
+			if _ai_reaction_timer > 0.0:
+				_ai_reaction_timer -= delta
+			else:
+				motion = PaddleAI.get_motion_easy(self, _ball, _ai_error_offset, delta)
 		elif GameSettings.ai_difficulty == 1:
-			motion = PaddleAI.get_motion_medium(self, _ball, _ai_error_offset, delta)
+			# Roll chase-fallback once per rally (when ball first approaches)
+			var approaching_m := PaddleAI._is_approaching(self, _ball)
+			if approaching_m and not _ai_ball_was_approaching:
+				_ai_medium_chase_fallback = randf() < 0.2
+			_ai_ball_was_approaching = approaching_m
+			motion = PaddleAI.get_motion_medium(
+				self, _ball, _ai_error_offset, delta, _ai_medium_chase_fallback
+			)
 		elif GameSettings.ai_difficulty == 2:
 			motion = PaddleAI.get_motion_hard(self, _ball, _ai_error_offset, delta)
 	else:
@@ -60,7 +84,7 @@ func _physics_process(delta: float) -> void:
 			or (_alt_down_action != "" and Input.is_action_pressed(_alt_down_action))
 		):
 			direction += 1.0
-		motion = Vector2(0, direction * speed * delta)
+		motion = Vector2(0, direction * player_speed * delta)
 
 	move_and_collide(motion)
 

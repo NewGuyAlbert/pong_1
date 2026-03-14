@@ -2,9 +2,12 @@ class_name PaddleAI
 ## Contains all AI difficulty strategies for the paddle.
 ## Each method returns a motion Vector2 that paddle.gd applies directly.
 
-const ERROR_EASY := 50.0
+const ERROR_EASY := 65.0
 const ERROR_MEDIUM := 30.0
 const ERROR_HARD := 15.0
+
+## Reaction delay (seconds) before Easy AI starts tracking an approaching ball.
+const REACTION_DELAY_EASY := 0.15
 
 
 ## Returns the error range for the current difficulty.
@@ -32,21 +35,27 @@ static func get_motion_easy(
 ) -> Vector2:
 	var target_y := ball.position.y + error_offset
 	var tracking_speed: float = (
-		paddle.speed if _is_approaching(paddle, ball) else paddle.speed / 4.0
+		paddle.speed if _is_approaching(paddle, ball) else paddle.speed / 5.0
 	)
 	return _move_toward(paddle, target_y, tracking_speed, delta)
 
 
 ## Medium: predicts straight-line shots. Falls back to chasing if a wall
 ## bounce would occur. Drifts to center when the ball moves away.
+## chase_fallback: when true, skips prediction and just chases the ball's Y.
 static func get_motion_medium(
 	paddle: CharacterBody2D,
 	ball: CharacterBody2D,
 	error_offset: float,
 	delta: float,
+	chase_fallback: bool = false,
 ) -> Vector2:
 	if not _is_approaching(paddle, ball):
-		return _move_toward(paddle, _center_y(paddle), paddle.speed / 3.0, delta)
+		return _move_toward(paddle, _center_y(paddle), paddle.speed / 4.0, delta)
+
+	if chase_fallback:
+		var chase_y := ball.position.y + error_offset
+		return _move_toward(paddle, chase_y, paddle.speed, delta)
 
 	var predicted: float = ball.predict_y(paddle.position.x, false)
 	var target_y := predicted if not is_nan(predicted) else ball.position.y
