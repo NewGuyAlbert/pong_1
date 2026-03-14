@@ -24,13 +24,13 @@ func _ready() -> void:
 	ball.paddle_hit.connect(_on_ball_paddle_hit)
 
 	if GameSettings.ai_enabled:
-		# PvE: left player gets W/S + arrow keys, right paddle is AI
-		left_paddle.configure(KEY_W, KEY_S, null, KEY_UP, KEY_DOWN)
-		right_paddle.configure(KEY_UP, KEY_DOWN, ball)
+		# PvE: left player gets both P1 and P2 actions (WASD + arrows + both sticks)
+		left_paddle.configure("p1_up", "p1_down", null, "p2_up", "p2_down")
+		right_paddle.configure("p2_up", "p2_down", ball)
 	else:
-		# PvP: left player W/S, right player arrow keys
-		left_paddle.configure(KEY_W, KEY_S)
-		right_paddle.configure(KEY_UP, KEY_DOWN)
+		# PvP: P1 = W/S + left stick + d-pad, P2 = arrows + right stick
+		left_paddle.configure("p1_up", "p1_down")
+		right_paddle.configure("p2_up", "p2_down")
 
 
 func _on_ball_scored(player: String) -> void:

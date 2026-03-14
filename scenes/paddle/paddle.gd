@@ -3,10 +3,10 @@ extends CharacterBody2D
 @export var speed := 400.0
 
 var _is_ai := false
-var _up_key: Key = KEY_W
-var _down_key: Key = KEY_S
-var _alt_up_key: Key = KEY_NONE
-var _alt_down_key: Key = KEY_NONE
+var _up_action: String = ""
+var _down_action: String = ""
+var _alt_up_action: String = ""
+var _alt_down_action: String = ""
 var _ball: CharacterBody2D  # Only used by AI paddle
 var _clamp_height: float  # Needed to keep paddle within screen bounds
 
@@ -16,18 +16,18 @@ var _ai_error_offset := 0.0
 
 ## Call this after adding the paddle to the scene tree to set up controls.
 ## For AI paddle, pass the ball reference; for player paddles pass null.
-## Optional alt keys allow a second set of controls (e.g. arrow keys + WASD in PvE).
+## Optional alt action allows a second set of controls (e.g. both sticks in PvE).
 func configure(
-	up_key: Key,
-	down_key: Key,
+	up_action: String,
+	down_action: String,
 	ball: CharacterBody2D = null,
-	alt_up_key: Key = KEY_NONE,
-	alt_down_key: Key = KEY_NONE
+	alt_up_action: String = "",
+	alt_down_action: String = ""
 ) -> void:
-	_up_key = up_key
-	_down_key = down_key
-	_alt_up_key = alt_up_key
-	_alt_down_key = alt_down_key
+	_up_action = up_action
+	_down_action = down_action
+	_alt_up_action = alt_up_action
+	_alt_down_action = alt_down_action
 	if ball:
 		_ball = ball
 		_is_ai = true
@@ -51,13 +51,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		var direction := 0.0
 		if (
-			Input.is_key_pressed(_up_key)
-			or (_alt_up_key != KEY_NONE and Input.is_key_pressed(_alt_up_key))
+			Input.is_action_pressed(_up_action)
+			or (_alt_up_action != "" and Input.is_action_pressed(_alt_up_action))
 		):
 			direction -= 1.0
 		if (
-			Input.is_key_pressed(_down_key)
-			or (_alt_down_key != KEY_NONE and Input.is_key_pressed(_alt_down_key))
+			Input.is_action_pressed(_down_action)
+			or (_alt_down_action != "" and Input.is_action_pressed(_alt_down_action))
 		):
 			direction += 1.0
 		motion = Vector2(0, direction * speed * delta)
