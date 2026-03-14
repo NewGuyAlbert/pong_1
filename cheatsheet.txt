@@ -25,59 +25,124 @@ ball, walls, score label). It doesn't do much on its own — it's an organizer.
 scenes/
   game/
     game.tscn           → Main game scene (root scene, holds everything)
-    game.gd             → Game logic: scoring, win condition, restart
+    game.gd             → Game logic: scoring, win condition, restart, layout
     pause_menu.tscn     → Pause overlay (instanced inside game.tscn)
     pause_menu.gd       → Pause/resume/restart/main menu logic
   menu/
-    main_menu.tscn      → Main menu (Play Co-op, Play AI, Settings, Quit)
-    main_menu.gd        → Button connections, scene navigation
-    placeholder_screen.tscn → WIP placeholder for unfinished screens
-    placeholder_screen.gd   → Back button returns to main menu
+    main/
+      main_menu.tscn      → Main menu (Play Co-op, Play AI, Settings, Quit)
+      main_menu.gd        → Button connections, scene navigation
+    difficulty/
+      difficulty_menu.tscn → AI difficulty picker (Easy, Medium, Hard)
+      difficulty_menu.gd   → Sets difficulty, launches game in AI mode
+    settings/
+      settings_menu.tscn   → Settings screen (fullscreen, win score, ball speed, volume)
+      settings_menu.gd     → Reads/writes GameSettings, applies changes live
+    placeholder/
+      placeholder_screen.tscn → WIP placeholder for unfinished screens
+      placeholder_screen.gd   → Back button returns to main menu
   ball/
     ball.tscn           → Ball scene
-    ball.gd             → Ball movement, bouncing, speed, reset, scoring detection
+    ball.gd             → Ball movement, angle-based bounce, speed, reset, scoring
+    ball_predictor.gd   → Static helper: projects ball path with wall bounces (AI + debug)
   paddle/
     paddle.tscn         → Paddle scene (reused for both players)
-    paddle.gd           → Paddle movement, input handling, screen clamping
+    paddle.gd           → Paddle movement, input actions, AI integration, screen clamping
+    paddle_ai.gd        → Static AI strategies: Easy, Medium, Hard (class_name PaddleAI)
   global/
     routes.gd           → Global scene path constants (class_name Routes)
+    game_settings.gd    → Autoload: AI mode, difficulty, fullscreen, volume, etc.
+    ui_sounds.gd        → Autoload: plays hover sound on all buttons automatically
 assets/
   sounds/
+    menu_button.mp3     → Sound when hovering/focusing a menu button
     paddle_hit.mp3      → Sound when ball hits a paddle
     wall_hit.mp3        → Sound when ball hits a wall
     scored.mp3          → Sound when a point is scored
+    victory.mp3         → Sound when a player wins
   themes/
     button_normal.tres  → Shared StyleBoxFlat for button normal state
     button_hover.tres   → Shared StyleBoxFlat for button hover state
+
+--- AUTOLOADS ---
+
+GameSettings (scenes/global/game_settings.gd)
+  An Autoload singleton available everywhere as GameSettings.
+  Stores runtime settings that persist across scene changes:
+    ai_enabled            → bool: whether the current match is PvE
+    ai_difficulty         → int: 0=easy, 1=medium, 2=hard
+    fullscreen            → bool
+    win_score             → int (default 3, range 1–15)
+    ball_speed            → float (default 400, range 200–800)
+    master_volume         → float 0.0–1.0
+    last_input_is_controller → bool: tracks keyboard vs gamepad input
+  Methods:
+    apply_fullscreen()    → Switches between windowed and fullscreen
+    apply_volume()        → Converts 0–1 volume to dB on Master bus
+
+UiSounds (scenes/global/ui_sounds.gd)
+  An Autoload singleton that auto-connects to every BaseButton in the tree.
+  Plays a hover sound whenever a button receives mouse_entered or focus_entered.
+  Uses get_tree().node_added to catch buttons added at runtime.
 
 --- SCENE TREES ---
 
 MainMenu (Control)                 ← main_menu.gd, Full Rect
 └── VBoxContainer                    Center anchors
-    ├── TitleContainer (VBoxContainer)
+    ├── HeaderContainer (VBoxContainer)
     │   ├── TitleLabel (Label)         "PONG", font_size=48
     │   └── SubtitleLabel (Label)      "by NewGuyAlbert", font_size=8
-    ├── PlayCoopButton (Button)        → changes to game.tscn
-    ├── PlayAIButton (Button)          → changes to placeholder_screen.tscn
-    ├── SettingsButton (Button)        → changes to placeholder_screen.tscn
+    ├── PlayCoopButton (Button)        → sets ai_enabled=false, loads game.tscn
+    ├── PlayAIButton (Button)          → loads difficulty_menu.tscn
+    ├── SettingsButton (Button)        → loads settings_menu.tscn
     └── QuitButton (Button)            → quits the game
+
+DifficultyMenu (Control)           ← difficulty_menu.gd, Full Rect
+├── BackButton (Button)              "← Back", top-left
+└── VBoxContainer                    Center anchors
+    ├── EasyButton (Button)            → ai_difficulty=0, loads game.tscn
+    ├── MediumButton (Button)          → ai_difficulty=1, loads game.tscn
+    └── HardButton (Button)            → ai_difficulty=2, loads game.tscn
+
+SettingsMenu (Control)             ← settings_menu.gd, Full Rect
+├── BackButton (Button)              "← Back", top-left
+└── VBoxContainer                    Center anchors
+    ├── TitleLabel (Label)             "Settings"
+    ├── FullscreenRow (HBoxContainer)
+    │   ├── Label                        "Fullscreen"
+    │   └── FullscreenToggle (CheckButton)
+    ├── WinScoreRow (HBoxContainer)
+    │   ├── Label                        "Win Score"
+    │   ├── WinScoreSlider (HSlider)     1–15, step 1
+    │   └── WinScoreValue (Label)
+    ├── BallSpeedRow (HBoxContainer)
+    │   ├── Label                        "Ball Speed"
+    │   ├── BallSpeedSlider (HSlider)    200–800, step 50
+    │   └── BallSpeedValue (Label)
+    └── VolumeRow (HBoxContainer)
+        ├── Label                        "Volume"
+        ├── VolumeSlider (HSlider)       0–100, step 5
+        └── VolumeValue (Label)
 
 PlaceholderScreen (Control)        ← placeholder_screen.gd, Full Rect
 ├── WipLabel (Label)                 "Work in Progress", Center anchors
 └── BackButton (Button)              "← Back", top-left
 
-Main (Node2D)                      ← game.gd
-├── TopWall (StaticBody2D)           pos (576, -10)
-│   └── CollisionShape2D             RectangleShape2D 1152×20
-├── BottomWall (StaticBody2D)        pos (576, 658)
-│   └── CollisionShape2D             RectangleShape2D 1152×20
-├── LeftPaddle (instance of paddle.tscn)   pos (40, 324), is_left_player=true
-├── RightPaddle (instance of paddle.tscn)  pos (1112, 324), is_left_player=false
-├── ScoreLabel (Label)               centered, font_size=36, "0 : 0"
+Game (Node2D)                      ← game.gd
+├── TopWall (StaticBody2D)           positioned by _layout_game_elements()
+│   └── CollisionShape2D             RectangleShape2D, sized to viewport width
+├── BottomWall (StaticBody2D)        positioned by _layout_game_elements()
+│   └── CollisionShape2D             RectangleShape2D, sized to viewport width
+├── LeftPaddle (instance of paddle.tscn)   configured via configure() in _ready
+├── RightPaddle (instance of paddle.tscn)  configured via configure() in _ready
+├── ScoreLabel (Label)               centered, font_size=36, "0   0"
 ├── Ball (instance of ball.tscn)
 ├── CenterLine (ColorRect)          2px wide, white at 39% opacity
+├── VictorySound (AudioStreamPlayer)  → victory.mp3
 └── CanvasLayer                      UI overlay layer
-    └── PauseMenu (instance of pause_menu.tscn)
+    ├── PauseMenu (instance of pause_menu.tscn)
+    ├── WinnerLabel (Label)          hidden until win, e.g. "Player 1 Wins!"
+    └── RestartLabel (Label)         hidden until win, e.g. "Press R to Restart"
 
 PauseMenu (Control)                ← pause_menu.gd, Full Rect, process_mode=Always
 ├── DimBackground (ColorRect)        Full Rect, black at ~24% opacity
@@ -87,7 +152,7 @@ PauseMenu (Control)                ← pause_menu.gd, Full Rect, process_mode=Al
     ├── RestartButton (Button)         → reloads scene
     └── MainMenuButton (Button)        → changes to main_menu.tscn
 
-Ball (CharacterBody2D)             ← ball.gd
+Ball (CharacterBody2D)             ← ball.gd, group "ball"
 ├── CollisionShape2D                 CircleShape2D radius=8
 ├── ColorRect                        16×16 square visual
 ├── PaddleHitSound (AudioStreamPlayer2D)  → paddle_hit.mp3
@@ -114,13 +179,17 @@ StaticBody2D          - A physics body that does NOT move (walls)
 CharacterBody2D       - A physics body you move with code (paddles, ball)
 CollisionShape2D      - Defines the hitbox shape; child of a physics body
 ColorRect             - A simple colored rectangle (visuals for paddle/ball/center line)
-Label                 - Displays text on screen (score, titles)
+Label                 - Displays text on screen (score, titles, winner)
 Button               - A clickable button, emits pressed() signal
+CheckButton          - A toggle button (on/off), emits toggled(bool) signal
+HSlider              - A horizontal slider, emits value_changed(float) signal
 Control              - Base node for all UI elements. Supports anchors/layout.
 VBoxContainer        - Arranges children vertically with spacing
+HBoxContainer        - Arranges children horizontally with spacing
 CanvasLayer          - Renders children on a separate layer (used for UI on
                        top of Node2D scenes — required because Control anchors
                        don't work under a Node2D parent)
+AudioStreamPlayer     - Plays a sound globally (not 2D-positioned) — victory sound
 AudioStreamPlayer2D   - Plays a sound in 2D space (paddle hit, wall hit, scored)
 
 --- PHYSICS BODIES CHEAT SHEET ---
@@ -132,47 +201,139 @@ Area2D            → Detects overlaps but doesn't collide. (triggers, pickups)
 
 --- INPUT MAP ---
 
-Built-in actions:
-  ui_cancel (Escape)     → Pause game / return to main menu / quit (context-dependent)
+All actions defined in Project Settings > Input Map. Each action maps
+keyboard + controller inputs so both work automatically.
 
-Custom actions (defined in Project Settings > Input Map):
-  ui_restart (R)         → Restart the game (only works after a win)
+  ui_accept    → Enter, Space, Gamepad A (South)
+  ui_cancel    → Escape, Gamepad B (East), Gamepad Start
+  ui_restart   → R, Gamepad Y (North)
 
-Hardcoded keys (read directly in paddle.gd):
-  W / S                  → Left paddle movement
-  Up / Down arrows       → Right paddle movement
+  p1_up        → W, Left Stick Up, D-pad Up
+  p1_down      → S, Left Stick Down, D-pad Down
+  p2_up        → Up Arrow, Right Stick Up
+  p2_down      → Down Arrow, Right Stick Down
+
+In PvE mode, the left paddle also listens to p2_up/p2_down as alt actions
+so the player can use either set of controls.
 
 --- SIGNALS IN THIS PROJECT ---
 
-signal scored(player: String)    → Declared in ball.gd
-scored.emit("left")              → Ball emits when it exits right side
-scored.emit("right")             → Ball emits when it exits left side
-ball.scored.connect(_on_ball_scored)  → main.gd listens for it in _ready()
+signal scored(player: String)           → Declared in ball.gd
+  scored.emit("left")                   → Ball emits when it exits right side
+  scored.emit("right")                  → Ball emits when it exits left side
+  ball.scored.connect(_on_ball_scored)   → game.gd listens for it in _ready()
+
+signal paddle_hit(paddle: CharacterBody2D)  → Declared in ball.gd
+  paddle_hit.emit(collider)                 → Ball emits on paddle collision
+  ball.paddle_hit.connect(_on_ball_paddle_hit) → game.gd listens, re-rolls AI error
 
 Signals are Godot's event system. A node emits a signal, other nodes listen.
 This keeps code decoupled — the ball doesn't need to know about the score.
 
+--- AI SYSTEM ---
+
+PaddleAI (class_name, static methods in paddle_ai.gd):
+  Three difficulty strategies, each returns a motion Vector2:
+
+  Easy   - Chases ball's Y position directly. Tracks slower when ball moves
+           away. Has a reaction delay (0.15s) when ball first approaches.
+           Error range: ±65px.
+
+  Medium - Predicts straight-line shots using BallPredictor (no bounces).
+           Falls back to chasing if wall bounce would occur. Also randomly
+           uses chase instead of prediction 20% of the time. Drifts to
+           center when ball moves away. Error range: ±30px.
+
+  Hard   - Predicts with wall bounces (up to 10). Moves 20% faster.
+           Returns to center promptly when ball heads away.
+           Error range: ±15px.
+
+  Error offset: randomized each time the ball hits the AI paddle
+  (via randomize_ai_error()). Adds imprecision so the AI isn't perfect.
+
+BallPredictor (class_name, static methods in ball_predictor.gd):
+  predict_y()       → Returns the Y coordinate where ball reaches target_x.
+                       Set include_bounces=false for straight-line only.
+  simulate_path()   → Returns Array[Vector2] of points along the ball's
+                       predicted path, bouncing off top/bottom walls.
+  draw_prediction() → Draws yellow path lines + red endpoint (debug overlay).
+                       Called from ball._draw() when debug_draw=true.
+
+--- PADDLE CONFIGURATION ---
+
+Paddles are configured at runtime via paddle.configure():
+  configure(up_action, down_action, ball?, alt_up?, alt_down?)
+
+  PvP mode:
+    left_paddle.configure("p1_up", "p1_down")
+    right_paddle.configure("p2_up", "p2_down")
+
+  PvE mode:
+    left_paddle.configure("p1_up", "p1_down", null, "p2_up", "p2_down")
+    right_paddle.configure("p2_up", "p2_down", ball)  ← AI-controlled
+
+  When a ball reference is passed, the paddle becomes AI-controlled.
+  The paddle has separate speeds: player_speed (600) and speed (400, AI base).
+
+--- BALL BOUNCE MECHANICS ---
+
+Angle-based paddle bounce (not simple reflection):
+  - Where the ball hits the paddle is normalized to -1 (top) to +1 (bottom)
+  - This offset is multiplied by max_bounce_angle (50°) to get the angle
+  - Hitting center → flat horizontal bounce (0°)
+  - Hitting edge → steepest possible angle (50°)
+  - Horizontal direction is always reversed on paddle hit
+  - Speed increases by speed_increment (×1.05) on every hit, capped at max_speed
+
+--- DYNAMIC LAYOUT ---
+
+game.gd._layout_game_elements() positions all game objects based on
+the current viewport size, replacing hardcoded pixel positions:
+  - Walls span full viewport width, placed just outside visible area
+  - Paddles centered vertically, offset PADDLE_MARGIN (40px) from edges
+  - Score label spans full width at top
+  - Center line at viewport midpoint
+
 --- KEY GODOT FUNCTIONS USED ---
 
 move_and_collide(motion)    → Move a body and return collision info (ball, paddle)
-direction.bounce(normal)    → Reflect a vector across a surface normal (ball bounce)
+direction.bounce(normal)    → Reflect a vector across a surface normal (wall bounce)
 get_viewport_rect().size    → Get the viewport dimensions as Vector2
 get_tree().quit()           → Close the game
 get_tree().reload_current_scene()  → Reload the current scene (restart)
 get_tree().change_scene_to_file(path) → Switch to a different scene entirely
 get_tree().paused = true/false → Pause/unpause the entire scene tree
 get_tree().create_timer(t).timeout → Create a one-shot timer, await it
+get_tree().node_added.connect(fn) → Listen for any new node entering the tree
 get_viewport().set_input_as_handled() → Stop an input event from propagating further
 set_physics_process(false)  → Disable _physics_process on a node (freeze it)
 show() / hide()             → Set the built-in 'visible' property to true/false
+grab_focus()                → Give keyboard/controller focus to a UI control
 clampf(value, min, max)     → Clamp a float between min and max
 minf(a, b)                  → Return the smaller of two floats
+absf(value)                 → Absolute value of a float
+move_toward(from, to, delta)→ Move a value toward a target by at most delta
+signf(value)                → Returns -1, 0, or 1 based on sign
 randf_range(min, max)       → Random float in range
+randf()                     → Random float 0.0–1.0
 randi() % 2                 → Random 0 or 1 (coin flip)
+deg_to_rad(degrees)         → Convert degrees to radians
+cos(angle) / sin(angle)     → Trig functions for bounce angle calculation
 Vector2.from_angle(radians) → Create a unit vector from an angle
-Input.is_key_pressed(KEY)   → Check if a specific key is held down
+Input.is_action_pressed(a)  → Check if an input action is held down
 event.is_action_pressed(a)  → Check if an input action was just pressed
 button.pressed.connect(fn)  → Connect a button's pressed signal to a function
+button.toggled.connect(fn)  → Connect a CheckButton's toggled signal
+slider.value_changed.connect(fn) → Connect a slider's value change signal
+fn.bind(arg)                → Create a callable with a pre-bound argument
+linear_to_db(linear)        → Convert linear volume (0–1) to decibels
+AudioServer.get_bus_index(name) → Get the index of an audio bus by name
+AudioServer.set_bus_volume_db() → Set bus volume in dB
+AudioServer.set_bus_mute()      → Mute or unmute an audio bus
+DisplayServer.window_set_mode() → Switch between windowed/fullscreen
+is_nan(value)               → Check if a float is NaN (not a number)
+preload(path)               → Load a resource at compile time
+queue_redraw()              → Schedule the node's _draw() to be called again
 
 --- GDSCRIPT BASICS ---
 
@@ -181,12 +342,16 @@ func _ready():        → Called once when the node enters the scene
 func _process(delta): → Called every frame (for visuals/input)
 func _physics_process(delta): → Called every physics tick (for movement)
 func _unhandled_input(event):  → Called for input not consumed by UI
+func _input(event):            → Called for ALL input events (before UI)
+func _draw():                  → Custom drawing (called after queue_redraw())
 @export var speed := 400.0    → Editable in the Inspector panel
 @onready var ball = $Ball     → Gets a child node reference when ready
 await <signal>                → Pause execution until a signal fires
 class_name MyName             → Registers a global name for this script
                                 (accessible from any other script without
                                 preloading — great for constants/enums)
+static func name()            → A function that belongs to the class, not an
+                                instance. Called as ClassName.name().
 
 --- NODE REFERENCES ---
 
@@ -238,6 +403,8 @@ Routes (class_name)         → Central file with scene path constants so paths
                               are defined in one place. Usage: Routes.MAIN_MENU
                               NOT an Autoload — no instance created, just a
                               globally available class for static constants.
+                              Constants: MAIN_MENU, DIFFICULTY_MENU,
+                              SETTINGS_MENU, PLACEHOLDER_SCREEN, GAME
 
 --- UI / CONTROL NODES ---
 
@@ -259,12 +426,29 @@ visible property: Built-in on all CanvasItem nodes (Control, Node2D, etc.).
   show() sets visible=true, hide() sets visible=false.
   Used to toggle UI elements like the pause menu.
 
+grab_focus(): Gives keyboard/controller focus to a Control node. Used on
+  the first button in each menu so controller navigation works immediately.
+
+--- CONTROLLER SUPPORT ---
+
+Input actions map both keyboard keys and gamepad buttons/sticks.
+GameSettings.last_input_is_controller tracks the most recent input device
+so the game can show context-appropriate button prompts:
+  Keyboard → "Press R to Restart · Esc for Menu"
+  Gamepad  → "Press △ to Restart · ○ for Menu"
+The restart label updates every frame via _process() to stay in sync.
+
+All menus call grab_focus() on the first button so d-pad/stick navigation
+works without needing a mouse click first.
+
 --- PROJECT SETTINGS ---
 
 Viewport size:         1152 × 648
+Stretch mode:          canvas_items (UI scales with window)
 Renderer:              Forward Plus (D3D12 on Windows)
 Background color:      Dark gray (0.1, 0.1, 0.1)
-Main scene:            res://scenes/menu/main_menu.tscn
+Main scene:            res://scenes/menu/main/main_menu.tscn
+Autoloads:             UiSounds, GameSettings
 
 --- COORDINATE SYSTEM ---
 
@@ -282,18 +466,22 @@ So:
 --- GAME FLOW ---
 
 1. Game launches → Main Menu appears
-2. Player picks Play Co-op → game.tscn loads
-3. game.gd _ready() connects ball's scored signal
-4. Ball resets to center, waits 1 second, launches in random direction
-5. Players move paddles with W/S and Up/Down
-6. Ball bounces off walls and paddles, speeding up each hit
-7. When ball exits left/right edge → scored signal → score updates
-8. Ball resets to center and re-launches
-9. First player to 3 points wins → game freezes
-10. Press R to restart
-11. Press Escape → pause menu (resume, restart, or return to main menu)
-12. Play AI / Settings → placeholder "Work in Progress" screen
-13. Quit from main menu → closes the game
+2. Player picks Play Co-op → game.tscn loads (PvP mode)
+3. Player picks Play AI → Difficulty Menu → pick Easy/Medium/Hard → game.tscn loads (PvE mode)
+4. Player picks Settings → Settings Menu (fullscreen, win score, ball speed, volume)
+5. game.gd _ready() connects ball's scored and paddle_hit signals
+6. game.gd _ready() calls configure() on paddles (PvP or PvE based on GameSettings)
+7. game.gd _layout_game_elements() positions walls/paddles/UI based on viewport
+8. Ball resets to center, waits 1 second, launches in random direction
+9. Players move paddles with W/S and Up/Down (or gamepad sticks/d-pad)
+10. In PvE, right paddle is AI-controlled; left paddle accepts both input sets
+11. Ball bounces off walls (reflection) and paddles (angle-based), speeding up each hit
+12. When ball exits left/right edge → scored signal → score updates
+13. Ball resets to center and re-launches
+14. First player to win_score points wins → game freezes, winner label + victory sound
+15. Press R (or gamepad Y) to restart
+16. Press Escape (or gamepad B/Start) → pause menu (resume, restart, or main menu)
+17. Quit from main menu → closes the game
 
 --- EDITOR TIPS ---
 
