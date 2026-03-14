@@ -9,7 +9,7 @@ signal paddle_hit(paddle: CharacterBody2D)
 @export var reset_delay := 1.0
 
 @export var max_bounce_angle := deg_to_rad(50.0)  # Steepest angle when hitting paddle edge
-@export var debug_draw := true  # Toggle to show/hide predicted ball path
+@export var debug_draw := false  # Toggle to show/hide predicted ball path
 
 var speed: float
 var direction: Vector2 = Vector2.ZERO
@@ -39,7 +39,7 @@ func _launch_after_delay() -> void:
 		return  # already waiting to launch, do nothing
 	_resetting = true
 	await get_tree().create_timer(reset_delay).timeout  # delay before launching
-	speed = initial_speed
+	speed = GameSettings.ball_speed
 	var angle := randf_range(-PI / 4, PI / 4)  # random angle between -45 and 45 degrees
 	if randi() % 2 == 0:  # 50% chance to launch left or right
 		angle += PI

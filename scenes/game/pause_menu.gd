@@ -29,6 +29,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _pause() -> void:
 	get_tree().paused = true
 	show()
+	resume_button.grab_focus()
 
 
 func _resume() -> void:

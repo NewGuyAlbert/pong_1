@@ -11,6 +11,7 @@ func _ready() -> void:
 	play_ai_button.pressed.connect(_on_play_ai)
 	settings_button.pressed.connect(_on_settings)
 	quit_button.pressed.connect(_on_quit)
+	play_coop_button.grab_focus()
 
 
 func _on_play_coop() -> void:
@@ -23,7 +24,7 @@ func _on_play_ai() -> void:
 
 
 func _on_settings() -> void:
-	get_tree().change_scene_to_file(Routes.PLACEHOLDER_SCREEN)
+	get_tree().change_scene_to_file(Routes.SETTINGS_MENU)
 
 
 func _on_quit() -> void:

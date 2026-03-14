@@ -1,0 +1,130 @@
+[gd_scene format=3 uid="uid://vrendnoob35i"]
+
+[ext_resource type="Script" uid="uid://dd6kcefhjfy8" path="res://scenes/menu/settings_menu.gd" id="1_qk8rs"]
+[ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="2_cags2"]
+[ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="3_i15dv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cags2"]
+
+[node name="SettingsMenu" type="Control" unique_id=1322375213]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qk8rs")
+
+[node name="BackButton" type="Button" parent="." unique_id=920975709]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 83.0
+offset_bottom = 51.0
+theme_override_styles/normal = ExtResource("2_cags2")
+theme_override_styles/hover = ExtResource("3_i15dv")
+theme_override_styles/focus = ExtResource("3_i15dv")
+text = "← Back"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1205527073]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer" unique_id=1934363936]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "SETTINGS"
+
+[node name="FullscreenRow" type="HBoxContainer" parent="VBoxContainer" unique_id=435230047]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="VBoxContainer/FullscreenRow" unique_id=501863016]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Fullscreen"
+
+[node name="FullscreenToggle" type="CheckButton" parent="VBoxContainer/FullscreenRow" unique_id=1776000276]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/normal = SubResource("StyleBoxEmpty_cags2")
+
+[node name="WinScoreRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1380738439]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="VBoxContainer/WinScoreRow" unique_id=12053362]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Win Score"
+
+[node name="WinScoreSlider" type="HSlider" parent="VBoxContainer/WinScoreRow" unique_id=1994875187]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WinScoreValue" type="Label" parent="VBoxContainer/WinScoreRow" unique_id=1588219710]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "3"
+
+[node name="BallSpeedRow" type="HBoxContainer" parent="VBoxContainer" unique_id=511821020]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="VBoxContainer/BallSpeedRow" unique_id=1338043833]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Ball Speed"
+
+[node name="BallSpeedSlider" type="HSlider" parent="VBoxContainer/BallSpeedRow" unique_id=2015780345]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BallSpeedValue" type="Label" parent="VBoxContainer/BallSpeedRow" unique_id=1226653739]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "400"
+
+[node name="VolumeRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1990923388]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="VBoxContainer/VolumeRow" unique_id=333559723]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Volume"
+
+[node name="VolumeSlider" type="HSlider" parent="VBoxContainer/VolumeRow" unique_id=75850588]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VolumeValue" type="Label" parent="VBoxContainer/VolumeRow" unique_id=1637769499]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "50%"

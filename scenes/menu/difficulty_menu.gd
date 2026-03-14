@@ -11,6 +11,7 @@ func _ready() -> void:
 	medium_button.pressed.connect(_on_difficulty.bind(1))
 	hard_button.pressed.connect(_on_difficulty.bind(2))
 	back_button.pressed.connect(func(): get_tree().change_scene_to_file(Routes.MAIN_MENU))
+	easy_button.grab_focus()
 
 
 func _on_difficulty(level: int) -> void:

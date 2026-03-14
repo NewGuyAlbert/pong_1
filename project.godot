@@ -28,6 +28,13 @@ ui_restart={
 ]
 }
 
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
 [rendering]
 
 rendering_device/driver.windows="d3d12"

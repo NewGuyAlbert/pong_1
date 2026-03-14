@@ -50,6 +50,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/normal = ExtResource("2_0n058")
 theme_override_styles/hover = ExtResource("3_1gnl8")
+theme_override_styles/focus = ExtResource("3_1gnl8")
 text = "Resume"
 
 [node name="RestartButton" type="Button" parent="VBoxContainer" unique_id=485685913]
@@ -57,6 +58,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/normal = ExtResource("2_0n058")
 theme_override_styles/hover = ExtResource("3_1gnl8")
+theme_override_styles/focus = ExtResource("3_1gnl8")
 text = "Restart"
 
 [node name="MainMenuButton" type="Button" parent="VBoxContainer" unique_id=710603507]
@@ -64,4 +66,5 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/normal = ExtResource("2_0n058")
 theme_override_styles/hover = ExtResource("3_1gnl8")
+theme_override_styles/focus = ExtResource("3_1gnl8")
 text = "Main Menu"
