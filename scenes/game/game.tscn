@@ -16,24 +16,29 @@ size = Vector2(1152, 20)
 script = ExtResource("1_0sr1o")
 
 [node name="TopWall" type="StaticBody2D" parent="." unique_id=301633552]
+unique_name_in_owner = true
 position = Vector2(576, -10)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TopWall" unique_id=257644501]
 shape = SubResource("RectangleShape2D_7dm0k")
 
 [node name="BottomWall" type="StaticBody2D" parent="." unique_id=528454355]
+unique_name_in_owner = true
 position = Vector2(576, 658)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BottomWall" unique_id=251811851]
 shape = SubResource("RectangleShape2D_ig7tw")
 
 [node name="LeftPaddle" parent="." unique_id=1653243891 instance=ExtResource("1_ig7tw")]
+unique_name_in_owner = true
 position = Vector2(40, 324)
 
 [node name="RightPaddle" parent="." unique_id=1196709304 instance=ExtResource("1_ig7tw")]
+unique_name_in_owner = true
 position = Vector2(1112, 324)
 
 [node name="ScoreLabel" type="Label" parent="." unique_id=1401867053]
+unique_name_in_owner = true
 offset_top = 10.0
 offset_right = 1152.0
 offset_bottom = 60.0
@@ -42,8 +47,10 @@ text = "0   0"
 horizontal_alignment = 1
 
 [node name="Ball" parent="." unique_id=21919213 instance=ExtResource("3_h2yge")]
+unique_name_in_owner = true
 
 [node name="CenterLine" type="ColorRect" parent="." unique_id=176053235]
+unique_name_in_owner = true
 offset_left = 575.0
 offset_right = 577.0
 offset_bottom = 648.0
@@ -91,5 +98,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="VictorySound" type="AudioStreamPlayer" parent="." unique_id=1288528583]
+unique_name_in_owner = true
 stream = ExtResource("5_vic01")
 volume_db = -1.0

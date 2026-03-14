@@ -5,7 +5,6 @@ This project is for personal learning.
 
 ## TODOs
 
-- Check for inconsistent solutions across project.
 - Ball can be squeezed in the corner bug.
 
 ## Setup

@@ -7,16 +7,16 @@ var score_left := 0
 var score_right := 0
 var winner := ""
 
-@onready var ball: CharacterBody2D = $Ball
-@onready var left_paddle: CharacterBody2D = $LeftPaddle
-@onready var right_paddle: CharacterBody2D = $RightPaddle
-@onready var score_label: Label = $ScoreLabel
+@onready var ball: CharacterBody2D = %Ball
+@onready var left_paddle: CharacterBody2D = %LeftPaddle
+@onready var right_paddle: CharacterBody2D = %RightPaddle
+@onready var score_label: Label = %ScoreLabel
 @onready var winner_label: Label = %WinnerLabel
 @onready var restart_label: Label = %RestartLabel
-@onready var victory_sound: AudioStreamPlayer = $VictorySound
-@onready var top_wall: StaticBody2D = $TopWall
-@onready var bottom_wall: StaticBody2D = $BottomWall
-@onready var center_line: ColorRect = $CenterLine
+@onready var victory_sound: AudioStreamPlayer = %VictorySound
+@onready var top_wall: StaticBody2D = %TopWall
+@onready var bottom_wall: StaticBody2D = %BottomWall
+@onready var center_line: ColorRect = %CenterLine
 
 
 func _ready() -> void:

@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://dooogqu6jksgb"]
+[gd_scene format=3 uid="uid://sli2n5uesjpa"]
 
-[ext_resource type="Script" uid="uid://bu7lg02fv1mhk" path="res://scenes/menu/main_menu.gd" id="1_nl8w3"]
+[ext_resource type="Script" uid="uid://bu7lg02fv1mhk" path="res://scenes/menu/main/main_menu.gd" id="1_d1tah"]
 [ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="2_247la"]
 [ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="3_kiqgm"]
 
@@ -13,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 8
 size_flags_vertical = 0
-script = ExtResource("1_nl8w3")
+script = ExtResource("1_d1tah")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=2146852596]
 layout_mode = 1

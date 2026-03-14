@@ -18,6 +18,7 @@ var _resetting := false  # Used to prevent multiple launches during reset.
 @onready var paddle_hit_sound: AudioStreamPlayer2D = $PaddleHitSound
 @onready var wall_hit_sound: AudioStreamPlayer2D = $WallHitSound
 @onready var scored_sound: AudioStreamPlayer2D = $ScoredSound
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
 # This is called when the node enters the scene tree for the first time.
@@ -110,7 +111,7 @@ func _draw() -> void:
 			position,
 			direction,
 			target_x,
-			$CollisionShape2D.shape.radius,
+			collision_shape.shape.radius,
 			get_viewport_rect().size,
 		)
 	)
@@ -127,7 +128,7 @@ func predict_y(target_x: float, include_bounces: bool = true) -> float:
 			position,
 			direction,
 			target_x,
-			$CollisionShape2D.shape.radius,
+			collision_shape.shape.radius,
 			get_viewport_rect().size,
 			include_bounces,
 		)

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c12bbdvktae2c"]
 
-[ext_resource type="Script" uid="uid://8jtyxq1b4liu" path="res://scenes/menu/difficulty_menu.gd" id="1_i1j5u"]
+[ext_resource type="Script" uid="uid://8jtyxq1b4liu" path="res://scenes/menu/difficulty/difficulty_menu.gd" id="1_i1j5u"]
 [ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="1_m7xj0"]
 [ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="2_i1j5u"]
 

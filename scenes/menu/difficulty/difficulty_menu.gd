@@ -10,7 +10,7 @@ func _ready() -> void:
 	easy_button.pressed.connect(_on_difficulty.bind(0))
 	medium_button.pressed.connect(_on_difficulty.bind(1))
 	hard_button.pressed.connect(_on_difficulty.bind(2))
-	back_button.pressed.connect(func(): get_tree().change_scene_to_file(Routes.MAIN_MENU))
+	back_button.pressed.connect(_on_back_pressed)
 	easy_button.grab_focus()
 
 
@@ -24,3 +24,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Go back to main menu
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().change_scene_to_file(Routes.MAIN_MENU)
+
+
+func _on_back_pressed() -> void:
+	get_tree().change_scene_to_file(Routes.MAIN_MENU)
