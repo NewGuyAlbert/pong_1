@@ -3,6 +3,10 @@ extends Node
 var ai_enabled := false
 var ai_difficulty := 0  # 0 = easy, 1 = medium, 2 = hard
 
+# Multiplayer
+var is_online := false
+var is_host := false
+
 # Settings with defaults
 var fullscreen := false
 var win_score := 3

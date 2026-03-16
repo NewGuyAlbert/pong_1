@@ -1,0 +1,142 @@
+[gd_scene format=3 uid="uid://cmkic7l8j8u04"]
+
+[ext_resource type="Script" uid="uid://n0rahym161xh" path="res://scenes/menu/multiplayer/multiplayer_menu.gd" id="1_c4ly1"]
+[ext_resource type="StyleBox" uid="uid://s11hj5q7p081" path="res://assets/themes/button_normal.tres" id="2_y6ing"]
+[ext_resource type="StyleBox" uid="uid://bakt6ipejggis" path="res://assets/themes/button_hover.tres" id="3_waofd"]
+
+[node name="MultiplayerMenu" type="Control" unique_id=1121733937]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_c4ly1")
+
+[node name="BackButton" type="Button" parent="." unique_id=352730397]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 83.0
+offset_bottom = 51.0
+theme_override_styles/normal = ExtResource("2_y6ing")
+theme_override_styles/hover = ExtResource("3_waofd")
+theme_override_styles/focus = ExtResource("3_waofd")
+text = "← Back"
+
+[node name="MultiplayerScreen" type="VBoxContainer" parent="." unique_id=447272061]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = -39.0
+offset_right = 70.0
+offset_bottom = 39.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="HostButton" type="Button" parent="MultiplayerScreen" unique_id=1215351826]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_y6ing")
+theme_override_styles/hover = ExtResource("3_waofd")
+theme_override_styles/focus = ExtResource("3_waofd")
+text = "Host"
+
+[node name="JoinButton" type="Button" parent="MultiplayerScreen" unique_id=226329355]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_y6ing")
+theme_override_styles/hover = ExtResource("3_waofd")
+theme_override_styles/focus = ExtResource("3_waofd")
+text = "Join"
+
+[node name="HostScreen" type="VBoxContainer" parent="." unique_id=1691781762]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="HostScreen" unique_id=699020896]
+layout_mode = 2
+text = "Waiting for player on port 7000..."
+
+[node name="CancelButton" type="Button" parent="HostScreen" unique_id=993591563]
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_y6ing")
+theme_override_styles/hover = ExtResource("3_waofd")
+theme_override_styles/focus = ExtResource("3_waofd")
+text = "Cancel"
+
+[node name="JoinScreen" type="VBoxContainer" parent="." unique_id=1665025102]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="JoinScreen" unique_id=1462044271]
+layout_mode = 2
+text = "Enter IP address and port"
+
+[node name="AddressInputField" type="LineEdit" parent="JoinScreen" unique_id=990514062]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "127.0.0.1:7000"
+
+[node name="JoinGameButton" type="Button" parent="JoinScreen" unique_id=326166754]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_y6ing")
+theme_override_styles/hover = ExtResource("3_waofd")
+theme_override_styles/focus = ExtResource("3_waofd")
+text = "Join"
+
+[node name="CancelButton" type="Button" parent="JoinScreen" unique_id=1883189537]
+layout_mode = 2
+theme_override_styles/normal = ExtResource("2_y6ing")
+theme_override_styles/hover = ExtResource("3_waofd")
+theme_override_styles/focus = ExtResource("3_waofd")
+text = "Cancel"
+
+[node name="ErrorLabel" type="Label" parent="." unique_id=1505632058]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -40.0
+offset_right = 200.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+horizontal_alignment = 1

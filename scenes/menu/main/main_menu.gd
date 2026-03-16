@@ -2,6 +2,7 @@ extends Control
 
 @onready var play_coop_button: Button = %PlayCoopButton
 @onready var play_ai_button: Button = %PlayAIButton
+@onready var multiplayer_button: Button = %MultiplayerButton
 @onready var settings_button: Button = %SettingsButton
 @onready var quit_button: Button = %QuitButton
 
@@ -9,6 +10,7 @@ extends Control
 func _ready() -> void:
 	play_coop_button.pressed.connect(_on_play_coop)
 	play_ai_button.pressed.connect(_on_play_ai)
+	multiplayer_button.pressed.connect(_on_multiplayer)
 	settings_button.pressed.connect(_on_settings)
 	quit_button.pressed.connect(_on_quit)
 	play_coop_button.grab_focus()
@@ -21,6 +23,10 @@ func _on_play_coop() -> void:
 
 func _on_play_ai() -> void:
 	get_tree().change_scene_to_file(Routes.DIFFICULTY_MENU)
+
+
+func _on_multiplayer() -> void:
+	get_tree().change_scene_to_file(Routes.MULTIPLAYER_MENU)
 
 
 func _on_settings() -> void:

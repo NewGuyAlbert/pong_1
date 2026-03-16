@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 UiSounds="*res://scenes/global/ui_sounds.gd"
 GameSettings="*uid://bfj4080n61d3d"
+NetworkManager="*res://scenes/global/network_manager.gd"
 
 [display]
 
@@ -76,4 +77,5 @@ p2_down={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.101960786, 0.101960786, 0.101960786, 1)

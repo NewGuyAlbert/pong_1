@@ -6,6 +6,7 @@ class_name Routes
 
 const MAIN_MENU := "res://scenes/menu/main/main_menu.tscn"
 const DIFFICULTY_MENU := "res://scenes/menu/difficulty/difficulty_menu.tscn"
+const MULTIPLAYER_MENU := "res://scenes/menu/multiplayer/multiplayer_menu.tscn"
 const SETTINGS_MENU := "res://scenes/menu/settings/settings_menu.tscn"
 const PLACEHOLDER_SCREEN := "res://scenes/menu/placeholder/placeholder_screen.tscn"
 const GAME := "res://scenes/game/game.tscn"

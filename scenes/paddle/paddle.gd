@@ -4,6 +4,7 @@ extends CharacterBody2D
 @export var player_speed := 600.0  # Player base speed
 
 var _is_ai := false
+var _is_remote := false
 var _up_action: String = ""
 var _down_action: String = ""
 var _alt_up_action: String = ""
@@ -41,12 +42,19 @@ func configure(
 		_is_ai = true
 
 
+func configure_remote() -> void:
+	_is_remote = true
+
+
 func _ready() -> void:
 	var shape: RectangleShape2D = $CollisionShape2D.shape
 	_clamp_height = shape.size.y
 
 
 func _physics_process(delta: float) -> void:
+	if _is_remote:
+		return
+
 	var motion := Vector2.ZERO
 
 	if _is_ai and GameSettings.ai_enabled:
@@ -92,6 +100,14 @@ func _physics_process(delta: float) -> void:
 	position.y = clampf(
 		position.y, _clamp_height / 2.0, get_viewport_rect().size.y - _clamp_height / 2.0
 	)
+
+	if GameSettings.is_online and not _is_remote:
+		_sync_position.rpc(position.y)
+
+
+@rpc("any_peer", "unreliable")
+func _sync_position(y: float) -> void:
+	position.y = y
 
 
 # Called by the ball when it collides with this paddle.

@@ -15,6 +15,11 @@ var speed: float
 var direction: Vector2 = Vector2.ZERO
 var _resetting := false  # Used to prevent multiple launches during reset.
 
+# Network interpolation state (client only)
+var _net_target_pos := Vector2.ZERO
+var _net_target_dir := Vector2.ZERO
+var _net_target_speed := 0.0
+
 @onready var paddle_hit_sound: AudioStreamPlayer2D = $PaddleHitSound
 @onready var wall_hit_sound: AudioStreamPlayer2D = $WallHitSound
 @onready var scored_sound: AudioStreamPlayer2D = $ScoredSound
@@ -32,12 +37,16 @@ func reset() -> void:
 	position = vp / 2.0
 	speed = 0.0
 	direction = Vector2.ZERO
+	if GameSettings.is_online and GameSettings.is_host:
+		_sync_reset.rpc(position)
 	_launch_after_delay()  # fire-and-forget, reset() itself returns immediately
 
 
 func _launch_after_delay() -> void:
 	if _resetting:
 		return  # already waiting to launch, do nothing
+	if GameSettings.is_online and not GameSettings.is_host:
+		return  # client doesn't launch the ball
 	_resetting = true
 	await get_tree().create_timer(reset_delay).timeout  # delay before launching
 	speed = GameSettings.ball_speed
@@ -50,6 +59,10 @@ func _launch_after_delay() -> void:
 
 # This is called every physics frame. It checks for collisions and scoring.
 func _physics_process(delta: float) -> void:
+	if GameSettings.is_online and not GameSettings.is_host:
+		position = position.lerp(_net_target_pos, 20.0 * delta)
+		return
+
 	# move_and_collide() moves the ball and returns collision info if it hits
 	# any physics body (paddle, wall, etc.) — no paddle-specific logic needed.
 	var collision := move_and_collide(direction * speed * delta)
@@ -98,6 +111,24 @@ func _physics_process(delta: float) -> void:
 	elif position.x > vp.x:
 		scored.emit("left")
 		reset()
+
+	if GameSettings.is_online:
+		_sync_state.rpc(position, direction, speed)
+
+
+@rpc("authority", "unreliable")
+func _sync_state(pos: Vector2, dir: Vector2, spd: float) -> void:
+	_net_target_pos = pos
+	_net_target_dir = dir
+	_net_target_speed = spd
+
+
+@rpc("authority", "reliable")
+func _sync_reset(pos: Vector2) -> void:
+	position = pos
+	_net_target_pos = pos
+	speed = 0.0
+	direction = Vector2.ZERO
 
 
 ## Debug: draws the predicted ball path, bouncing off walls, until it reaches a side.

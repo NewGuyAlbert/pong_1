@@ -25,7 +25,14 @@ func _ready() -> void:
 	ball.scored.connect(_on_ball_scored)
 	ball.paddle_hit.connect(_on_ball_paddle_hit)
 
-	if GameSettings.ai_enabled:
+	if GameSettings.is_online:
+		if GameSettings.is_host:
+			left_paddle.configure("p1_up", "p1_down")
+			right_paddle.configure_remote()
+		else:
+			left_paddle.configure_remote()
+			right_paddle.configure("p1_up", "p1_down")
+	elif GameSettings.ai_enabled:
 		# PvE: left player gets both P1 and P2 actions (WASD + arrows + both sticks)
 		left_paddle.configure("p1_up", "p1_down", null, "p2_up", "p2_down")
 		right_paddle.configure("p2_up", "p2_down", ball)
@@ -36,18 +43,43 @@ func _ready() -> void:
 
 
 func _on_ball_scored(player: String) -> void:
+	if GameSettings.is_online and not GameSettings.is_host:
+		return  # client waits for host to sync scores
+
 	if player == "left":
 		score_left += 1
 	else:
 		score_right += 1
 
+	if GameSettings.is_online:
+		_sync_score.rpc(score_left, score_right)
+
+	_update_game_state()
+
+
+@rpc("authority", "reliable")
+func _sync_score(left: int, right: int) -> void:
+	score_left = left
+	score_right = right
+	_update_game_state()
+
+
+func _update_game_state() -> void:
 	score_label.text = "%d   %d" % [score_left, score_right]
 
 	# Win condition: first to win_score points
 	if score_left >= GameSettings.win_score:
-		winner = "Player 1"
+		if GameSettings.is_online:
+			winner = "Host" if GameSettings.is_host else "Opponent"
+		else:
+			winner = "Player 1"
 	elif score_right >= GameSettings.win_score:
-		winner = "CPU" if GameSettings.ai_enabled else "Player 2"
+		if GameSettings.is_online:
+			winner = "Opponent" if GameSettings.is_host else "Host"
+		elif GameSettings.ai_enabled:
+			winner = "CPU"
+		else:
+			winner = "Player 2"
 
 	if winner != "":
 		winner_label.text = "%s Wins!" % winner
