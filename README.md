@@ -5,9 +5,8 @@ This project is for personal learning.
 
 ## TODOs
 
-- Ball can be squeezed in the corner bug. (unknown if still a thing)
+- Ball can be squeezed in the corner bug.
 - Installer/uninstaller. How does one get trusted by os? :D
-- Game logic overkill? Maybe break things aprat into game coop, game ai and game online?
 
 ## Setup
 

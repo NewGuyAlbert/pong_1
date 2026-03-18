@@ -6,6 +6,7 @@ const WALL_THICKNESS := 20.0
 var score_left := 0
 var score_right := 0
 var winner := ""
+var _network: Node = null
 
 @onready var ball: CharacterBody2D = %Ball
 @onready var left_paddle: CharacterBody2D = %LeftPaddle
@@ -17,54 +18,84 @@ var winner := ""
 @onready var top_wall: StaticBody2D = %TopWall
 @onready var bottom_wall: StaticBody2D = %BottomWall
 @onready var center_line: ColorRect = %CenterLine
+@onready var pause_menu: Control = %PauseMenu
 
 
 func _ready() -> void:
 	_layout_game_elements()
-
 	ball.scored.connect(_on_ball_scored)
-	ball.paddle_hit.connect(_on_ball_paddle_hit)
 
 	if GameSettings.is_online:
-		if GameSettings.is_host:
-			left_paddle.configure("p1_up", "p1_down")
-			right_paddle.configure_remote()
-		else:
-			left_paddle.configure_remote()
-			right_paddle.configure("p1_up", "p1_down")
+		_setup_online()
 	elif GameSettings.ai_enabled:
-		# PvE: left player gets both P1 and P2 actions (WASD + arrows + both sticks)
-		left_paddle.configure("p1_up", "p1_down", null, "p2_up", "p2_down")
-		right_paddle.configure("p2_up", "p2_down", ball)
+		_setup_ai()
 	else:
-		# PvP: P1 = W/S + left stick + d-pad, P2 = arrows + right stick
+		_setup_coop()
+
+
+## PvP local: P1 = W/S + left stick + d-pad, P2 = arrows + right stick
+func _setup_coop() -> void:
+	left_paddle.configure("p1_up", "p1_down")
+	right_paddle.configure("p2_up", "p2_down")
+
+
+## PvE: left player gets both P1 and P2 input actions (WASD + arrows + both sticks).
+## Adds a GameAI child node that takes over the right paddle.
+func _setup_ai() -> void:
+	left_paddle.configure("p1_up", "p1_down", "p2_up", "p2_down")
+
+	var ai := preload("res://scenes/game/game_ai.gd").new()
+	ai.name = "GameAI"
+	add_child(ai)
+	ai.setup(right_paddle, ball)
+
+
+## Online: adds a GameNetwork child node that handles all RPC sync.
+## Host controls the left paddle; client controls the right paddle.
+## Both players use P1 input actions (W/S) for their own paddle.
+func _setup_online() -> void:
+	var net := preload("res://scenes/game/game_network.gd").new()
+	net.name = "GameNetwork"
+	add_child(net)
+	_network = net
+	net.score_updated.connect(_on_network_score)
+
+	if GameSettings.is_host:
 		left_paddle.configure("p1_up", "p1_down")
-		right_paddle.configure("p2_up", "p2_down")
+		net.setup(ball, left_paddle, right_paddle, pause_menu)
+	else:
+		right_paddle.configure("p1_up", "p1_down")
+		net.setup(ball, right_paddle, left_paddle, pause_menu)
 
 
 func _on_ball_scored(player: String) -> void:
+	# In online mode, only the host processes scoring and syncs to the client
 	if GameSettings.is_online and not GameSettings.is_host:
-		return  # client waits for host to sync scores
+		return
 
 	if player == "left":
 		score_left += 1
 	else:
 		score_right += 1
 
-	if GameSettings.is_online:
-		_sync_score.rpc(score_left, score_right)
+	# Sync scores and ball reset to the client
+	if _network:
+		_network.sync_score(score_left, score_right)
+		_network.sync_ball_reset()
 
-	_update_game_state()
+	_apply_score()
 
 
-@rpc("authority", "reliable")
-func _sync_score(left: int, right: int) -> void:
+## Called by game_network.gd when the client receives a score update from the host.
+func _on_network_score(left: int, right: int) -> void:
 	score_left = left
 	score_right = right
-	_update_game_state()
+	_apply_score()
 
 
-func _update_game_state() -> void:
+## Updates the score display and checks for a winner.
+## Called by both _on_ball_scored (host/offline) and _on_network_score (client).
+func _apply_score() -> void:
 	score_label.text = "%d   %d" % [score_left, score_right]
 
 	# Win condition: first to win_score points
@@ -94,11 +125,6 @@ func _update_game_state() -> void:
 		ball.scored_sound.play()
 
 
-func _on_ball_paddle_hit(paddle: CharacterBody2D) -> void:
-	if GameSettings.ai_enabled and paddle == right_paddle:
-		right_paddle.randomize_ai_error()
-
-
 func _process(_delta: float) -> void:
 	# Keep the restart prompt in sync with the current input device.
 	if winner != "":
@@ -108,12 +134,24 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	# Restart game (after a win)
 	if event.is_action_pressed("ui_restart") and winner != "":
+		if GameSettings.is_online and not GameSettings.is_host:
+			return  # Only the host can restart in online mode
+		if _network:
+			pause_menu.restart_requested.emit()
 		get_tree().reload_current_scene()
 
 
 func _get_restart_text() -> String:
+	if GameSettings.is_online and not GameSettings.is_host:
+		if GameSettings.last_input_is_controller:
+			return "Press \u25CB to Disconnect"
+		return "Press Esc to Disconnect"
 	if GameSettings.last_input_is_controller:
+		if GameSettings.is_online:
+			return "Press \u25B3 to Restart \u00b7 \u25CB to Disconnect"
 		return "Press \u25B3 to Restart \u00b7 \u25CB for Menu"
+	if GameSettings.is_online:
+		return "Press R to Restart \u00b7 Esc to Disconnect"
 	return "Press R to Restart \u00b7 Esc for Menu"
 
 

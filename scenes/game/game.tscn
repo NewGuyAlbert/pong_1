@@ -59,6 +59,7 @@ color = Color(1, 1, 1, 0.19607843)
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=39697164]
 
 [node name="PauseMenu" parent="CanvasLayer" unique_id=1696648110 instance=ExtResource("4_kelw5")]
+unique_name_in_owner = true
 
 [node name="WinnerLabel" type="Label" parent="CanvasLayer" unique_id=1501928471]
 unique_name_in_owner = true
@@ -71,7 +72,6 @@ anchor_bottom = 0.5
 offset_left = -300.0
 offset_top = -60.0
 offset_right = 300.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 48
