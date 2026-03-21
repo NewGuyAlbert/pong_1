@@ -9,8 +9,6 @@ var _local_paddle: CharacterBody2D
 var _remote_paddle: CharacterBody2D
 var _pause_menu: Control
 
-var _net_ball_target := Vector2.ZERO  # Client-side interpolation target for ball position
-
 
 ## Call from game.gd to wire this network controller.
 ## local_paddle = the paddle this player controls with input.
@@ -26,11 +24,14 @@ func setup(
 	_remote_paddle = remote_paddle
 	_pause_menu = pause_menu
 	_remote_paddle.set_external_control(true)  # Remote paddle is driven by network, not local input
-	_net_ball_target = _ball.position
 
 	# Client doesn't run ball physics — it receives state from the host
 	if not GameSettings.is_host:
 		_ball.set_physics_process(false)
+	else:
+		# Host relays hit sounds to the client
+		_ball.paddle_hit.connect(_on_ball_paddle_hit)
+		_ball.wall_hit.connect(_on_ball_wall_hit)
 
 	# Keep processing while paused so pause/disconnect RPCs still arrive
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -40,45 +41,32 @@ func setup(
 	NetworkManager.peer_disconnected.connect(_on_peer_disconnected)
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	# Don't sync positions while the game is paused
 	if get_tree().paused:
 		return
 
-	# Send local paddle position
+	# Send local paddle position to the other player
 	_sync_paddle.rpc(_local_paddle.position.y)
 
-	# Host sends ball state
+	# Host sends ball state; client just receives it
 	if GameSettings.is_host:
-		_sync_ball.rpc(_ball.position, _ball.direction, _ball.speed)
-	else:
-		# Client interpolates ball
-		_ball.position = _ball.position.lerp(_net_ball_target, 20.0 * delta)
+		_sync_ball.rpc(_ball.position)
 
 
-# Receives the other player's paddle Y position. "any_peer" because both host
-# and client send their own paddle position to each other.
 @rpc("any_peer", "unreliable")
 func _sync_paddle(y: float) -> void:
 	_remote_paddle.position.y = y
 
 
-# Host sends ball state to client every physics frame. "unreliable" because
-# a dropped packet is replaced by the next one ~16ms later.
 @rpc("authority", "unreliable")
-func _sync_ball(pos: Vector2, dir: Vector2, spd: float) -> void:
-	_net_ball_target = pos
-	_ball.direction = dir
-	_ball.speed = spd
+func _sync_ball(pos: Vector2) -> void:
+	_ball.position = pos
 
 
-# Host sends a reliable reset so the client snaps the ball to center.
 @rpc("authority", "reliable")
 func _sync_ball_reset(pos: Vector2) -> void:
 	_ball.position = pos
-	_net_ball_target = pos
-	_ball.speed = 0.0
-	_ball.direction = Vector2.ZERO
 
 
 ## Called by game.gd when a point is scored (host only).
@@ -96,6 +84,26 @@ func sync_ball_reset() -> void:
 @rpc("authority", "reliable")
 func _sync_score(left: int, right: int) -> void:
 	score_updated.emit(left, right)
+
+
+# --- Sound sync ---
+
+
+func _on_ball_paddle_hit(_paddle: CharacterBody2D) -> void:
+	_sync_sound.rpc(0)
+
+
+func _on_ball_wall_hit() -> void:
+	_sync_sound.rpc(1)
+
+
+## Client plays the hit sound that the host detected.
+@rpc("authority", "unreliable")
+func _sync_sound(type: int) -> void:
+	if type == 0:
+		_ball.paddle_hit_sound.play()
+	elif type == 1:
+		_ball.wall_hit_sound.play()
 
 
 # --- Pause sync ---

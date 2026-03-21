@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 signal scored(player: String)
 signal paddle_hit(paddle: CharacterBody2D)
+signal wall_hit
 
 @export var initial_speed := 400.0
 @export var speed_increment := 1.05
@@ -79,6 +80,7 @@ func _physics_process(delta: float) -> void:
 		elif collider is StaticBody2D:
 			direction = direction.bounce(collision.get_normal())
 			wall_hit_sound.play()  # Hit the wall
+			wall_hit.emit()
 		else:
 			direction = direction.bounce(collision.get_normal())
 
