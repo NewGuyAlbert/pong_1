@@ -5,7 +5,6 @@ This project is for personal learning.
 
 ## TODOs
 
-- Ball can be squeezed in the corner bug.
 - Installer/uninstaller. How does one get trusted by os? :D
 
 ## Setup

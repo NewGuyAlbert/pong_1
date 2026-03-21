@@ -16,6 +16,11 @@ var speed: float
 var direction: Vector2 = Vector2.ZERO
 var _resetting := false
 
+# Ignore paddle collisions briefly after a hit
+# The paddle does not detect the ball because of collision layers.
+# This cooldown prevents the ball from being pinched between the paddle and the wall.
+var _paddle_cooldown := 0.0
+
 @onready var paddle_hit_sound: AudioStreamPlayer2D = $PaddleHitSound
 @onready var wall_hit_sound: AudioStreamPlayer2D = $WallHitSound
 @onready var scored_sound: AudioStreamPlayer2D = $ScoredSound
@@ -33,6 +38,7 @@ func reset() -> void:
 	position = vp / 2.0
 	speed = 0.0
 	direction = Vector2.ZERO
+	_paddle_cooldown = 0.0
 	_launch_after_delay()
 
 
@@ -51,12 +57,15 @@ func _launch_after_delay() -> void:
 
 # This is called every physics frame. It checks for collisions and scoring.
 func _physics_process(delta: float) -> void:
+	if _paddle_cooldown > 0.0:
+		_paddle_cooldown -= delta
+
 	var collision := move_and_collide(direction * speed * delta)
 	if collision:
 		var collider := collision.get_collider()
 
 		# This means we hit a paddle.
-		if collider is CharacterBody2D:
+		if collider is CharacterBody2D and _paddle_cooldown <= 0.0:
 			var paddle_height: float = collider.get_node("CollisionShape2D").shape.size.y
 
 			# Where the ball hit the paddle, normalized to -1 (top) to 1 (bottom)
@@ -74,6 +83,7 @@ func _physics_process(delta: float) -> void:
 			# cos(45°) = 0.707, sin(45°) = 0.707 → ball goes at a 45° diagonal
 			# cos(30°) = 0.866, sin(30°) = 0.5 → ball goes at a 30° diagonal
 			direction = Vector2(x_dir * cos(bounce_angle), sin(bounce_angle)).normalized()
+			_paddle_cooldown = 0.1  # Prevent re-hitting the same paddle immediately
 
 			paddle_hit_sound.play()
 			paddle_hit.emit(collider)
