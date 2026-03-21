@@ -26,15 +26,20 @@ scenes/
   game/
     game.tscn           → Main game scene (root scene, holds everything)
     game.gd             → Game logic: scoring, win condition, restart, layout
+    game_ai.gd          → AI paddle controller node (added as child in PvE mode)
+    game_network.gd     → Multiplayer sync: paddles, ball, scores, sounds, pause
     pause_menu.tscn     → Pause overlay (instanced inside game.tscn)
-    pause_menu.gd       → Pause/resume/restart/main menu logic
+    pause_menu.gd       → Pause/resume/restart/disconnect logic
   menu/
     main/
-      main_menu.tscn      → Main menu (Play Co-op, Play AI, Settings, Quit)
+      main_menu.tscn      → Main menu (Play Co-op, Play AI, Multiplayer, Settings, Quit)
       main_menu.gd        → Button connections, scene navigation
     difficulty/
       difficulty_menu.tscn → AI difficulty picker (Easy, Medium, Hard)
       difficulty_menu.gd   → Sets difficulty, launches game in AI mode
+    multiplayer/
+      multiplayer_menu.tscn → Online match setup (Host / Join)
+      multiplayer_menu.gd   → Host/join logic, IP validation, connection UI
     settings/
       settings_menu.tscn   → Settings screen (fullscreen, win score, ball speed, volume)
       settings_menu.gd     → Reads/writes GameSettings, applies changes live
@@ -47,11 +52,12 @@ scenes/
     ball_predictor.gd   → Static helper: projects ball path with wall bounces (AI + debug)
   paddle/
     paddle.tscn         → Paddle scene (reused for both players)
-    paddle.gd           → Paddle movement, input actions, AI integration, screen clamping
+    paddle.gd           → Paddle movement, input actions, screen clamping, external control
     paddle_ai.gd        → Static AI strategies: Easy, Medium, Hard (class_name PaddleAI)
   global/
     routes.gd           → Global scene path constants (class_name Routes)
-    game_settings.gd    → Autoload: AI mode, difficulty, fullscreen, volume, etc.
+    game_settings.gd    → Autoload: AI mode, difficulty, online flags, fullscreen, volume
+    network_manager.gd  → Autoload: host/join setup, peer connection, disconnect detection
     ui_sounds.gd        → Autoload: plays hover sound on all buttons automatically
 assets/
   sounds/
@@ -71,6 +77,8 @@ GameSettings (scenes/global/game_settings.gd)
   Stores runtime settings that persist across scene changes:
     ai_enabled            → bool: whether the current match is PvE
     ai_difficulty         → int: 0=easy, 1=medium, 2=hard
+    is_online             → bool: whether the current match is online multiplayer
+    is_host               → bool: whether this player is the host (online mode)
     fullscreen            → bool
     win_score             → int (default 3, range 1–15)
     ball_speed            → float (default 400, range 200–800)
@@ -79,6 +87,22 @@ GameSettings (scenes/global/game_settings.gd)
   Methods:
     apply_fullscreen()    → Switches between windowed and fullscreen
     apply_volume()        → Converts 0–1 volume to dB on Master bus
+
+NetworkManager (scenes/global/network_manager.gd)
+  An Autoload singleton that manages all network connections.
+  Handles ENet peer creation, host/client setup, timeout, and cleanup.
+  Properties:
+    peer                  → ENetMultiplayerPeer: the active network transport
+    DEFAULT_PORT          → 7000
+    CONNECT_TIMEOUT_MS    → 5000 (5 second client timeout)
+  Methods:
+    host_game(port)       → Creates a server, sets is_online/is_host on GameSettings
+    join_game(address, port) → Creates a client connection with timeout
+    close()               → Disconnects peer, resets online flags, cleans up signals
+  Signals:
+    peer_connected        → A peer joined (host: client arrived; client: connected)
+    peer_disconnected     → Peer left or connection lost
+    connection_failed     → Client connection attempt timed out or was refused
 
 UiSounds (scenes/global/ui_sounds.gd)
   An Autoload singleton that auto-connects to every BaseButton in the tree.
@@ -94,6 +118,7 @@ MainMenu (Control)                 ← main_menu.gd, Full Rect
     │   └── SubtitleLabel (Label)      "by NewGuyAlbert", font_size=8
     ├── PlayCoopButton (Button)        → sets ai_enabled=false, loads game.tscn
     ├── PlayAIButton (Button)          → loads difficulty_menu.tscn
+    ├── MultiplayerButton (Button)     → loads multiplayer_menu.tscn
     ├── SettingsButton (Button)        → loads settings_menu.tscn
     └── QuitButton (Button)            → quits the game
 
@@ -124,6 +149,21 @@ SettingsMenu (Control)             ← settings_menu.gd, Full Rect
         ├── VolumeSlider (HSlider)       0–100, step 5
         └── VolumeValue (Label)
 
+MultiplayerMenu (Control)          ← multiplayer_menu.gd, Full Rect
+├── BackButton (Button)              "← Back", top-left
+├── MultiplayerScreen (VBoxContainer)  Center anchors (main screen)
+│   ├── HostButton (Button)            → calls NetworkManager.host_game()
+│   └── JoinButton (Button)            → shows join screen
+├── HostScreen (VBoxContainer)         Center anchors, hidden initially
+│   ├── Label                          "Waiting for player on port 7000..."
+│   └── CancelButton (Button)          → cancels hosting
+├── JoinScreen (VBoxContainer)         Center anchors, hidden initially
+│   ├── Label                          "Enter IP address and port"
+│   ├── AddressInputField (LineEdit)   placeholder: "127.0.0.1:7000"
+│   ├── JoinGameButton (Button)        → calls NetworkManager.join_game()
+│   └── CancelButton (Button)          → cancels joining
+└── ErrorLabel (Label)                 bottom center, red, hidden initially
+
 PlaceholderScreen (Control)        ← placeholder_screen.gd, Full Rect
 ├── WipLabel (Label)                 "Work in Progress", Center anchors
 └── BackButton (Button)              "← Back", top-left
@@ -147,10 +187,10 @@ Game (Node2D)                      ← game.gd
 PauseMenu (Control)                ← pause_menu.gd, Full Rect, process_mode=Always
 ├── DimBackground (ColorRect)        Full Rect, black at ~24% opacity
 └── VBoxContainer                    Center anchors
-    ├── PausedLabel (Label)            "PAUSED", font_size=36
-    ├── ResumeButton (Button)          → resumes game
-    ├── RestartButton (Button)         → reloads scene
-    └── MainMenuButton (Button)        → changes to main_menu.tscn
+    ├── PausedLabel (Label)            "PAUSED" (or "Opponent left the game")
+    ├── ResumeButton (Button)          → resumes game (hidden for client online)
+    ├── RestartButton (Button)         → reloads scene (hidden for client online)
+    └── MainMenuButton (Button)        → "Main Menu" or "Disconnect" (online)
 
 Ball (CharacterBody2D)             ← ball.gd, group "ball"
 ├── CollisionShape2D                 CircleShape2D radius=8
@@ -180,6 +220,7 @@ CharacterBody2D       - A physics body you move with code (paddles, ball)
 CollisionShape2D      - Defines the hitbox shape; child of a physics body
 ColorRect             - A simple colored rectangle (visuals for paddle/ball/center line)
 Label                 - Displays text on screen (score, titles, winner)
+LineEdit             - A single-line text input field (IP address entry)
 Button               - A clickable button, emits pressed() signal
 CheckButton          - A toggle button (on/off), emits toggled(bool) signal
 HSlider              - A horizontal slider, emits value_changed(float) signal
@@ -225,12 +266,42 @@ signal scored(player: String)           → Declared in ball.gd
 
 signal paddle_hit(paddle: CharacterBody2D)  → Declared in ball.gd
   paddle_hit.emit(collider)                 → Ball emits on paddle collision
-  ball.paddle_hit.connect(_on_ball_paddle_hit) → game.gd listens, re-rolls AI error
+  ball.paddle_hit.connect(...)              → game_ai.gd listens, re-rolls AI error
+
+signal wall_hit                             → Declared in ball.gd
+  wall_hit.emit()                           → Ball emits on wall collision
+  ball.wall_hit.connect(...)                → game_network.gd listens for sound sync
+
+signal pause_toggled(paused: bool)          → Declared in pause_menu.gd
+  pause_toggled.emit(true/false)            → Emitted when host pauses/resumes
+  pause_menu.pause_toggled.connect(...)     → game_network.gd syncs to client
+
+signal restart_requested                    → Declared in pause_menu.gd
+  restart_requested.emit()                  → Emitted when host presses restart
+  pause_menu.restart_requested.connect(...) → game_network.gd syncs to client
+
+signal score_updated(left, right)           → Declared in game_network.gd
+  score_updated.emit(left, right)           → Client receives score from host
+  _network.score_updated.connect(...)       → game.gd updates client-side score
+
+signal peer_connected                       → Declared in network_manager.gd
+signal peer_disconnected                    → Declared in network_manager.gd
+signal connection_failed                    → Declared in network_manager.gd
+  Used by multiplayer_menu.gd and game_network.gd for connection lifecycle.
 
 Signals are Godot's event system. A node emits a signal, other nodes listen.
 This keeps code decoupled — the ball doesn't need to know about the score.
 
 --- AI SYSTEM ---
+
+GameAI (game_ai.gd, added as child of Game in PvE mode):
+  The AI controller node. Created by game.gd._setup_ai() and added to the
+  scene tree at runtime. Calls PaddleAI strategies each physics tick and
+  applies the returned motion to the right paddle.
+  Key methods:
+    setup(paddle, ball)         → Wires AI to paddle/ball, enables external control
+    _physics_process(delta)     → Routes to Easy/Medium/Hard, moves paddle
+    _on_ball_paddle_hit(paddle) → Re-randomizes error offset on AI paddle hit
 
 PaddleAI (class_name, static methods in paddle_ai.gd):
   Three difficulty strategies, each returns a motion Vector2:
@@ -249,7 +320,7 @@ PaddleAI (class_name, static methods in paddle_ai.gd):
            Error range: ±15px.
 
   Error offset: randomized each time the ball hits the AI paddle
-  (via randomize_ai_error()). Adds imprecision so the AI isn't perfect.
+  (via game_ai._on_ball_paddle_hit()). Adds imprecision so the AI isn't perfect.
 
 BallPredictor (class_name, static methods in ball_predictor.gd):
   predict_y()       → Returns the Y coordinate where ball reaches target_x.
@@ -262,17 +333,23 @@ BallPredictor (class_name, static methods in ball_predictor.gd):
 --- PADDLE CONFIGURATION ---
 
 Paddles are configured at runtime via paddle.configure():
-  configure(up_action, down_action, ball?, alt_up?, alt_down?)
+  configure(up_action, down_action, alt_up_action?, alt_down_action?)
 
-  PvP mode:
+  Co-op (PvP) mode:
     left_paddle.configure("p1_up", "p1_down")
     right_paddle.configure("p2_up", "p2_down")
 
   PvE mode:
-    left_paddle.configure("p1_up", "p1_down", null, "p2_up", "p2_down")
-    right_paddle.configure("p2_up", "p2_down", ball)  ← AI-controlled
+    left_paddle.configure("p1_up", "p1_down", "p2_up", "p2_down")
+    right_paddle → driven by GameAI (set_external_control(true))
 
-  When a ball reference is passed, the paddle becomes AI-controlled.
+  Online mode:
+    Host controls left paddle ("p1_up", "p1_down")
+    Client controls right paddle ("p1_up", "p1_down") ← same actions, different machine
+    Remote paddle → driven by GameNetwork (set_external_control(true))
+
+  set_external_control(true) disables input processing on a paddle so an
+  external system (AI or network) can move it via move_and_collide().
   The paddle has separate speeds: player_speed (600) and speed (400, AI base).
 
 --- BALL BOUNCE MECHANICS ---
@@ -334,6 +411,16 @@ DisplayServer.window_set_mode() → Switch between windowed/fullscreen
 is_nan(value)               → Check if a float is NaN (not a number)
 preload(path)               → Load a resource at compile time
 queue_redraw()              → Schedule the node's _draw() to be called again
+add_child(node)             → Add a node as a child of the current node at runtime
+Node.new()                  → Create a new node instance from code
+ENetMultiplayerPeer.new()   → Create a new ENet multiplayer transport
+peer.create_server(port, max_clients) → Host a multiplayer game
+peer.create_client(address, port) → Connect to a multiplayer host
+multiplayer.multiplayer_peer = peer → Assign the peer to the multiplayer API
+multiplayer.is_server()     → Check if this instance is the host
+func_name.rpc()             → Call a function on all peers via RPC
+@rpc("any_peer", "unreliable") → RPC annotation: any peer can call, no delivery guarantee
+@rpc("authority", "reliable")  → RPC annotation: only host can call, guaranteed delivery
 
 --- GDSCRIPT BASICS ---
 
@@ -404,7 +491,8 @@ Routes (class_name)         → Central file with scene path constants so paths
                               NOT an Autoload — no instance created, just a
                               globally available class for static constants.
                               Constants: MAIN_MENU, DIFFICULTY_MENU,
-                              SETTINGS_MENU, PLACEHOLDER_SCREEN, GAME
+                              MULTIPLAYER_MENU, SETTINGS_MENU,
+                              PLACEHOLDER_SCREEN, GAME
 
 --- UI / CONTROL NODES ---
 
@@ -448,7 +536,7 @@ Stretch mode:          canvas_items (UI scales with window)
 Renderer:              Forward Plus (D3D12 on Windows)
 Background color:      Dark gray (0.1, 0.1, 0.1)
 Main scene:            res://scenes/menu/main/main_menu.tscn
-Autoloads:             UiSounds, GameSettings
+Autoloads:             UiSounds, GameSettings, NetworkManager
 
 --- COORDINATE SYSTEM ---
 
@@ -468,20 +556,64 @@ So:
 1. Game launches → Main Menu appears
 2. Player picks Play Co-op → game.tscn loads (PvP mode)
 3. Player picks Play AI → Difficulty Menu → pick Easy/Medium/Hard → game.tscn loads (PvE mode)
-4. Player picks Settings → Settings Menu (fullscreen, win score, ball speed, volume)
-5. game.gd _ready() connects ball's scored and paddle_hit signals
-6. game.gd _ready() calls configure() on paddles (PvP or PvE based on GameSettings)
-7. game.gd _layout_game_elements() positions walls/paddles/UI based on viewport
-8. Ball resets to center, waits 1 second, launches in random direction
-9. Players move paddles with W/S and Up/Down (or gamepad sticks/d-pad)
-10. In PvE, right paddle is AI-controlled; left paddle accepts both input sets
-11. Ball bounces off walls (reflection) and paddles (angle-based), speeding up each hit
-12. When ball exits left/right edge → scored signal → score updates
-13. Ball resets to center and re-launches
-14. First player to win_score points wins → game freezes, winner label + victory sound
-15. Press R (or gamepad Y) to restart
-16. Press Escape (or gamepad B/Start) → pause menu (resume, restart, or main menu)
-17. Quit from main menu → closes the game
+4. Player picks Multiplayer → Multiplayer Menu → Host or Join
+   a. Host: waits for client on port 7000 → game.tscn loads (online mode)
+   b. Join: enter IP:port → connects to host → game.tscn loads (online mode)
+5. Player picks Settings → Settings Menu (fullscreen, win score, ball speed, volume)
+6. game.gd _ready() connects ball's scored signal
+7. game.gd _ready() routes to _setup_coop(), _setup_ai(), or _setup_online()
+   - Co-op: configures both paddles for local input
+   - AI: creates GameAI child node to drive right paddle
+   - Online: creates GameNetwork child node for RPC sync
+8. game.gd _layout_game_elements() positions walls/paddles/UI based on viewport
+9. Ball resets to center, waits 1 second, launches in random direction
+10. Players move paddles with W/S and Up/Down (or gamepad sticks/d-pad)
+11. In PvE, right paddle is AI-controlled; left paddle accepts both input sets
+12. In online mode, host controls left paddle; client controls right paddle
+    - Host runs ball physics and syncs position/score/sounds via RPC
+    - Client receives ball state and sends its paddle position
+13. Ball bounces off walls (reflection) and paddles (angle-based), speeding up each hit
+14. When ball exits left/right edge → scored signal → score updates
+15. Ball resets to center and re-launches
+16. First player to win_score points wins → game freezes, winner label + victory sound
+17. Press R (or gamepad Y) to restart (host-only in online mode)
+18. Press Escape (or gamepad B/Start) → pause menu (resume, restart, or main menu)
+    - Online: host pause syncs to client; client sees local overlay only
+19. If opponent disconnects → "Opponent left" screen → return to main menu
+20. Quit from main menu → closes the game
+
+--- NETWORKING / ONLINE MULTIPLAYER ---
+
+Architecture: Host-authoritative. The host runs ball physics and scoring.
+The client sends its paddle Y position and receives ball/score/sound updates.
+
+NetworkManager (Autoload):
+  Manages the ENetMultiplayerPeer lifecycle. host_game() creates a server
+  (max 1 client for 1v1). join_game() creates a client with a 5-second
+  timeout. close() tears down the connection and resets GameSettings flags.
+
+GameNetwork (game_network.gd, added as child of Game in online mode):
+  Created by game.gd._setup_online(). Handles all RPC communication:
+  - Paddle sync: each player sends their paddle Y (unreliable, every tick)
+  - Ball sync: host sends ball position (unreliable, every tick)
+  - Ball reset: host sends ball position after goal (reliable)
+  - Score sync: host sends updated scores (reliable)
+  - Sound sync: host tells client to play paddle_hit / wall_hit sounds
+  - Pause sync: host pause/resume state sent to client (reliable)
+  - Restart sync: host restart command sent to client (reliable)
+  - Disconnect: detects peer leaving, shows "Opponent left" via pause_menu
+  Uses process_mode=PROCESS_MODE_ALWAYS so it works during pause.
+
+RPC Annotations:
+  @rpc("any_peer", "unreliable")  → Both host and client can call (paddle sync)
+  @rpc("authority", "unreliable") → Only host can call (ball sync)
+  @rpc("authority", "reliable")   → Only host, guaranteed delivery (score, pause)
+
+Online Pause Behavior:
+  - Only the host can pause the game (get_tree().paused = true)
+  - Host pause syncs to client (client sees non-dismissable overlay)
+  - Client Escape only shows a local overlay (no game pause)
+  - Only the host can restart; client receives reload command via RPC
 
 --- EDITOR TIPS ---
 
